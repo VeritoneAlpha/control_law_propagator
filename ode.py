@@ -80,10 +80,9 @@ def ode_rk23(F, a, b, y0, tol, maxIter, **kwargs):
             ONE_m = np.ones(m)
             
             t = a
-            y1 = y0
+            y1 = y0  # should be row vector
             
-            k1 =  F(t, y1, **kwargs)
-            
+            k1 =  F(t, y1, **kwargs) # should be a row vector
             # Procedure for Runge-Kutta 2nd & 3rd orders formulae with
             # automatic step control    
             while not failFlag:
@@ -93,7 +92,7 @@ def ode_rk23(F, a, b, y0, tol, maxIter, **kwargs):
                 if iter_i == maxIter:
                     failFlag = True
                 else:
-                    hk1 = hStep*k1
+                    hk1 = hStep*k1 # should be a row vector
                     k2 = F(t+hStep/2.0, y1+hk1/2.0, **kwargs) #feval(F, t+h/2., y1+hk1/2., varargin{1:end});
                     k3 = F(t+0.75*hStep, y1+0.75*hStep*k2, **kwargs) #feval(F, t+0.75*h, y1+0.75*h*k2, varargin{1:end});
                     k40 = y1 + hStep*(2.0*k1+ 3.0*k2+ 4.0*k3)/9.0
