@@ -12,7 +12,14 @@ from clp_init import *
 
 
 def rhs(t, qpu_vec, **kwargs):
-    # TODO: make sure that the functions that this calls are available
+    '''
+    Inputs:
+        t (integer): time at which the differential equations are being evaluated
+        qpu_vec (2D np.array): value at current time to be propagated forward according to dynamics.
+        **kwargs:  arguments passed to corresponding functions for dynamics of q, p, and u.
+    Outputs:
+        qpu_dot_vec (2D np.array): values for differential equations for  q, p, and u at current time interval.  These values are consumed by the numerical integration to propagate the dynamics.
+    '''
     state_dim = kwargs['state_dim']
     Gamma = kwargs['Gamma']
     q = qpu_vec[:state_dim]
@@ -21,7 +28,8 @@ def rhs(t, qpu_vec, **kwargs):
     q_dot =  H_T_p(q,p,u)
     p_dot = -1*H_T_q(q,p,u)
     u_dot = -Gamma*Q_u(q,p,u)
-    return np.hstack([q_dot, p_dot, u_dot])
+    qpu_dot_vec = np.hstack([q_dot, p_dot, u_dot])
+    return qpu_dot_vec
 
 def propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state_dim, Gamma):
     qs=[]
