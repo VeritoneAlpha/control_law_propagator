@@ -15,10 +15,10 @@ def rhs(t, qpu_vec, **kwargs):
     '''
     Inputs:
         t (integer): time at which the differential equations are being evaluated
-        qpu_vec (2D np.array): value at current time to be propagated forward according to dynamics.
+        qpu_vec (np.array): value at current time to be propagated forward according to dynamics.
         **kwargs:  arguments passed to corresponding functions for dynamics of q, p, and u.
     Outputs:
-        qpu_dot_vec (2D np.array): values for differential equations for  q, p, and u at current time interval.  These values are consumed by the numerical integration to propagate the dynamics.
+        qpu_dot_vec (np.array): values for differential equations for  q, p, and u at current time interval.  These values are consumed by the numerical integration to propagate the dynamics.
     '''
     state_dim = kwargs['state_dim']
     Gamma = kwargs['Gamma']
@@ -32,6 +32,20 @@ def rhs(t, qpu_vec, **kwargs):
     return qpu_dot_vec
 
 def propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state_dim, Gamma):
+    '''
+    Inputs:
+        t_0 (integer): Initial time to start propagating dynamics
+        T (integer): End time of propagating dynamics 
+        qpu_vec (np.array): initial values for q, p, and u to be propagated forward according to dynamics.
+        integrateTol (float):  local error tolerance in numerical integration 
+ for the solution
+        maxIter  (int):  maximal iterations allowed for executing nemerical integration
+        state_dim (int): number of states
+        Gamma (float): algorithmic parameter for Riemann descent algorithm
+    Outputs:
+        qpu_vec (np.array): ending values for q, p, and u 
+        qs, ps, us (lists of np.arrays): intermediate values for q, p, and u, respectively
+    '''
     qs=[]
     ps=[]
     us=[]
@@ -53,6 +67,13 @@ def propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state
     return qpu_vec, qs, ps, us
        
 def get_weights(K):
+    '''
+    Inputs:
+        K (int): number of values for half of the sliding window
+    Outputs:
+        weights (float): weights to be used for weighting values in the window.
+        weights_total (float): sum of all of the weights for entire window
+    ''' 
     weights_0 = [float(i)/K for i in range(1,K+1)]  
     weights_1 = [2-(float(i)/K) for i in range(K+1,(2*K)+1)]
     # sanity check 
@@ -62,12 +83,34 @@ def get_weights(K):
     return weights, weights_total
 
 def apply_filter(vec, weights, weights_total):
+    '''
+    Inputs:
+        vec (np.array): vector of state/control values to apply window filter to
+        weights (list of floats): weights for middle values of window.  End points are excluded because weights are 0 at endpoints.
+        weights_total (float): sum of all weights for entire window.
+    Outputs:
+        vec_normalized (np.array): normalized vector of state/control values
+    ''' 
+
     vec_weighted = [val*w for val,w in zip(vec, weights[:-1])]
     vec_current = np.sum(vec_weighted,0)
     vec_normalized = vec_current/float(weights_total)
     return vec_normalized
 
 def sliding_window(t_0, T, K, q_0, p_0, u_0, state_dim, Gamma, t_terminal):
+    '''
+    Inputs:
+        t_0 (int): Initial time to start propagating dynamics
+        T (int): End time of propagating dynamics 
+        q_0 (np.array): initial values of state vector
+        p_0 (np.array): initial values of costate vector
+        u_0 (np.array): initial values of control vector
+        state_dim (int): number of states
+        Gamma (float): algorithmic parameter for Riemann descent algorithm
+        t_terminal (int): time marking termination of control law propagator algorithm
+    Outputs:
+        q_bars, p_bars, u_bars (list of np.arrays): implemented state/costate/control values for entire propagator.
+    ''' 
     q_bars = []
     p_bars = []
     u_bars = []
