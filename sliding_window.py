@@ -5,7 +5,8 @@ Created on Fri Aug 31 09:09:32 2018
 Implement Control Law Propagator
 
 """
-import numpy as np
+import numpy as np 
+import abc
 import scipy as sp
 import ode
 from clp_init import *
@@ -29,7 +30,7 @@ class SlidingWindow(object):
     Gamma (algorithmic parameter for Riemann descent)
     t_terminal (end time of control law propagator)
     '''
-    __metaclass__ = abs.ABCMeta
+    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def H_T_p(self, q,p,u):
@@ -43,43 +44,43 @@ class SlidingWindow(object):
     def Q_u(self, q,p,u):
         return
 
-    @abs.abstractproperty
+    @abc.abstractproperty
     def integrateTol(self):
         return
 
-    @abs.abstractproperty
+    @abc.abstractproperty
     def integrateMaxIter(self):
         return
 
-    @abs.abstractproperty
+    @abc.abstractproperty
     def q_0(self):
         return
 
-    @abs.abstractproperty
+    @abc.abstractproperty
     def p_0(self):
         return
 
-    @abs.abstractproperty
+    @abc.abstractproperty
     def u_0(self):
         return
 
-    @abs.abstractproperty
+    @abc.abstractproperty
     def t_0(self):
         return
 
-    @abs.abstractproperty
+    @abc.abstractproperty
     def T(self):
         return
 
-    @abs.abstractproperty
+    @abc.abstractproperty
     def K(self): 
         return
 
-    @abs.abstractproperty
+    @abc.abstractproperty
     def Gamma(self): 
         return
 
-    @abs.abstractproperty
+    @abc.abstractproperty
     def t_terminal(self): 
         return
 
@@ -88,11 +89,24 @@ class SlidingWindowExample(SlidingWindow):
     '''
     Implementation of SlidingWindow abc
     '''
+    def H_T_p(self, q,p,u):
+        # for q-dot
+        return np.zeros(np.shape(q))
+    
+    def H_T_q(self, q,p,u):
+        # for p-dot
+        return np.zeros(np.shape(p))
+        
+    def Q_u(self, q,p,u):
+        # for u-dot
+        return np.zeros(np.shape(u))
+
     # Inputs for numerical propagator
-    q_0 = np.array([0,2])
-    p_0 = np.array([1,4])
-    u_0 = np.array([2])
-    state_dim = 2
+    q_0 = np.array([0])
+    p_0 = np.array([0])
+    u_0 = np.array([0])
+    qpu_vec = np.hstack([q_0, p_0, u_0])
+    state_dim = 1
     Gamma = 1
     
     # Inputs for numerical integration
@@ -101,21 +115,11 @@ class SlidingWindowExample(SlidingWindow):
     
     # Inputs for sliding window
     t_0 = 0
-    T =  4
-    K=2
+    T =  2
+    K=1
     
     # inputs for sliding window 
-    t_terminal = 10    
-        
-
-    def H_T_p(self, q,p,u):
-        return np.zeros(np.shape(q))
-
-    def H_T_q(self, q,p,u):
-        return np.zeros(np.shape(p))
-
-    def Q_u(self, q,p,u):
-        return np.zeros(np.shape(u))
+    t_terminal = 2
 
 
 def rhs(t, qpu_vec, **kwargs):
@@ -129,6 +133,10 @@ def rhs(t, qpu_vec, **kwargs):
     '''
     state_dim = kwargs['state_dim']
     Gamma = kwargs['Gamma']
+    sliding_window_instance = kwargs['sliding_window_instance']
+    H_T_q = sliding_window_instance.H_T_q
+    H_T_p = sliding_window_instance.H_T_p
+    Q_u = sliding_window_instance.Q_u
     q = qpu_vec[:state_dim]
     p = qpu_vec[state_dim:2*state_dim]
     u = qpu_vec[2*state_dim:]
@@ -138,7 +146,7 @@ def rhs(t, qpu_vec, **kwargs):
     qpu_dot_vec = np.hstack([q_dot, p_dot, u_dot])
     return qpu_dot_vec
 
-def propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state_dim, Gamma):
+def propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state_dim, Gamma, sliding_window_instance):
     '''
     Inputs:
         t_0 (integer): Initial time to start propagating dynamics
@@ -149,6 +157,7 @@ def propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state
         maxIter  (int):  maximal iterations allowed for executing nemerical integration
         state_dim (int): number of states
         Gamma (float): algorithmic parameter for Riemann descent algorithm
+        sliding_window_instance (instance of class SlidingWindow): object holding the rhs dynamics equations
     Outputs:
         qpu_vec (np.array): ending values for q, p, and u 
         qs, ps, us (lists of np.arrays): intermediate values for q, p, and u, respectively
@@ -161,7 +170,7 @@ def propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state
 
     for i in range(len(ts)-1):
         t_start, t_end = ts[i], ts[i+1]
-        qpu_vec_i, t, failFlag, iter_i = ode.ode_rk23(rhs, t_start, t_end, qpu_vec, integrateTol, integrateMaxIter, state_dim=state_dim, Gamma = Gamma)
+        qpu_vec_i, t, failFlag, iter_i = ode.ode_rk23(rhs, t_start, t_end, qpu_vec, integrateTol, integrateMaxIter, state_dim=state_dim, Gamma = Gamma, sliding_window_instance=sliding_window_instance)
         qpu_vec = qpu_vec_i[-1] # only need the last value
         if i == len(ts)-2 :
             pass 
@@ -204,7 +213,7 @@ def apply_filter(vec, weights, weights_total):
     vec_normalized = vec_current/float(weights_total)
     return vec_normalized
 
-def sliding_window(t_0, T, K, q_0, p_0, u_0, state_dim, Gamma, t_terminal):
+def sliding_window(sliding_window_instance):
     '''
     Inputs:
         t_0 (int): Initial time to start propagating dynamics
@@ -218,6 +227,7 @@ def sliding_window(t_0, T, K, q_0, p_0, u_0, state_dim, Gamma, t_terminal):
     Outputs:
         q_bars, p_bars, u_bars (list of np.arrays): implemented state/costate/control values for entire propagator.
     ''' 
+    t_0, T, K, q_0, p_0, u_0, state_dim, Gamma, t_terminal = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K, sliding_window_instance.q_0, sliding_window_instance.p_0, sliding_window_instance.u_0, sliding_window_instance.state_dim, sliding_window_instance.Gamma, sliding_window_instance.t_terminal
     q_bars = []
     p_bars = []
     u_bars = []
@@ -226,7 +236,7 @@ def sliding_window(t_0, T, K, q_0, p_0, u_0, state_dim, Gamma, t_terminal):
     qpu_vec = np.hstack([q_0, p_0, u_0])
     while t<t_terminal:
         
-        qpu_vec, qs, ps, us = propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state_dim, Gamma)
+        qpu_vec, qs, ps, us = propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state_dim, Gamma, sliding_window_instance)
         # qs, ps, and us will go to Mean Field somehow
 
         q_bar = apply_filter(qs,weights, weights_total)
@@ -241,7 +251,8 @@ def sliding_window(t_0, T, K, q_0, p_0, u_0, state_dim, Gamma, t_terminal):
 
     return q_bars, p_bars, u_bars
 
-q_bars, p_bars, u_bars = sliding_window(t_0, T, K, q_0, p_0, u_0, state_dim, Gamma, t_terminal)
+mySlidingWindow = SlidingWindowExample()
+q_bars, p_bars, u_bars = sliding_window(mySlidingWindow)
 print 'sliding window finished propagating. Resulting values are:'
 print q_bars
 print p_bars
