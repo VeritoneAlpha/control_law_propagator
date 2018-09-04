@@ -11,6 +11,113 @@ import ode
 from clp_init import *
 
 
+class SlidingWindow(object):
+    '''
+    This will be an abstract base class that mandates the user to define the following:
+   
+     Functions for dynamics, which take in three numpy arrays as inputs, and returns an numpy array
+        H_T_p(q,p,u) 
+        H_T_q(q,p,u)
+        Q_u(q,p,u)
+    
+    Initial conditions for q,p, and u, (all numpy arrays):
+        q_0, p_0, u_0 
+
+    t_0 (start time in integer)
+    T (length of one window)
+    K (number of intervals for half the window)
+    Gamma (algorithmic parameter for Riemann descent)
+    t_terminal (end time of control law propagator)
+    '''
+    __metaclass__ = abs.ABCMeta
+
+    @abc.abstractmethod
+    def H_T_p(self, q,p,u):
+        return
+
+    @abc.abstractmethod
+    def H_T_q(self, q,p,u):
+        return
+
+    @abc.abstractmethod
+    def Q_u(self, q,p,u):
+        return
+
+    @abs.abstractproperty
+    def integrateTol(self):
+        return
+
+    @abs.abstractproperty
+    def integrateMaxIter(self):
+        return
+
+    @abs.abstractproperty
+    def q_0(self):
+        return
+
+    @abs.abstractproperty
+    def p_0(self):
+        return
+
+    @abs.abstractproperty
+    def u_0(self):
+        return
+
+    @abs.abstractproperty
+    def t_0(self):
+        return
+
+    @abs.abstractproperty
+    def T(self):
+        return
+
+    @abs.abstractproperty
+    def K(self): 
+        return
+
+    @abs.abstractproperty
+    def Gamma(self): 
+        return
+
+    @abs.abstractproperty
+    def t_terminal(self): 
+        return
+
+
+class SlidingWindowExample(SlidingWindow):
+    '''
+    Implementation of SlidingWindow abc
+    '''
+    # Inputs for numerical propagator
+    q_0 = np.array([0,2])
+    p_0 = np.array([1,4])
+    u_0 = np.array([2])
+    state_dim = 2
+    Gamma = 1
+    
+    # Inputs for numerical integration
+    integrateTol = 10**-3
+    integrateMaxIter = 40
+    
+    # Inputs for sliding window
+    t_0 = 0
+    T =  4
+    K=2
+    
+    # inputs for sliding window 
+    t_terminal = 10    
+        
+
+    def H_T_p(self, q,p,u):
+        return np.zeros(np.shape(q))
+
+    def H_T_q(self, q,p,u):
+        return np.zeros(np.shape(p))
+
+    def Q_u(self, q,p,u):
+        return np.zeros(np.shape(u))
+
+
 def rhs(t, qpu_vec, **kwargs):
     '''
     Inputs:
