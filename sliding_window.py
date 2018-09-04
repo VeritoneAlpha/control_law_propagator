@@ -253,7 +253,7 @@ def sliding_window(sliding_window_instance):
 
 mySlidingWindow = SlidingWindowExample()
 q_bars, p_bars, u_bars = sliding_window(mySlidingWindow)
-print 'sliding window finished propagating. Resulting values are:'
-print q_bars
-print p_bars
-print u_bars
+#print 'sliding window finished propagating. Resulting values are:'
+#print q_bars
+#print p_bars
+#print u_bars
