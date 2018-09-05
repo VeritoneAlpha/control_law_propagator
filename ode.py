@@ -118,10 +118,10 @@ def ode_rk23(F, a, b, y0, tol, maxIter, **kwargs):
                         k1 = k4
                         tTime = np.append(tTime, t)
                         y = np.row_stack((y, y1)) 
-                        if R2 != 0:  
-                            hStep = hStep* min(1.5, 0.95*math.pow(R2, -1.0/3.0)) # increasing step size
+                        if abs(R2) > 1e-12:  
+                            hStep = hStep*min(1.5, 0.95*math.pow(R2, -1.0/3.0)) # increasing step size
                         else:
-                            hStep =  2.0 # arbitrarily chosen to be larger than 2.5, because R = 0 implies zero error
+                            hStep =  hStep*1.5 # arbitrarily chosen to be larger than 1.5, because R = 0 implies zero error
                         #  Check if solution has been done for tTime = b
                         if (t == b):
                             break
