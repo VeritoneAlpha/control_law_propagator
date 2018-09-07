@@ -33,15 +33,11 @@ class SlidingWindow(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def H_T_p(self, q,p,u):
+    def qp_rhs(self, q,p,u):
         return
 
     @abc.abstractmethod
-    def H_T_q(self, q,p,u):
-        return
-
-    @abc.abstractmethod
-    def Q_u(self, q,p,u):
+    def u_rhs(self, q,p,u):
         return
 
     @abc.abstractproperty
@@ -89,15 +85,14 @@ class SlidingWindowExample(SlidingWindow):
     '''
     Implementation of SlidingWindow abc
     '''
-    def H_T_p(self, q,p,u):
+    def qp_rhs(self, q,p,u):
         # for q-dot
-        return np.zeros(np.shape(q))
-    
-    def H_T_q(self, q,p,u):
+        q_dot =  np.zeros(np.shape(p))
         # for p-dot
-        return np.zeros(np.shape(p))
-        
-    def Q_u(self, q,p,u):
+        p_dot =  np.zeros(np.shape(q))
+        return np.concatenate([q_dot, p_dot])
+      
+    def u_rhs(self, q,p,u):
         # for u-dot
         return np.zeros(np.shape(u))
 
@@ -124,8 +119,7 @@ class SlidingWindowExample(SlidingWindow):
 
 def rhs(t, qpu_vec, **kwargs):
     '''
-    Inputs:
-        t (integer): time at which the differential equations are being evaluated
+    Inputs: t (integer): time at which the differential equations are being evaluated
         qpu_vec (np.array): value at current time to be propagated forward according to dynamics.
         **kwargs:  arguments passed to corresponding functions for dynamics of q, p, and u.
     Outputs:
