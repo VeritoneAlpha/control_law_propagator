@@ -112,33 +112,31 @@ class SlidingWindowExample(SlidingWindow):
     t_0 = 0
     T =  2
     K=1
-    
-    # inputs for sliding window 
     t_terminal = 2
 
 
-def rhs(t, qpu_vec, **kwargs):
-    '''
-    Inputs: t (integer): time at which the differential equations are being evaluated
-        qpu_vec (np.array): value at current time to be propagated forward according to dynamics.
-        **kwargs:  arguments passed to corresponding functions for dynamics of q, p, and u.
-    Outputs:
-        qpu_dot_vec (np.array): values for differential equations for  q, p, and u at current time interval.  These values are consumed by the numerical integration to propagate the dynamics.
-    '''
-    state_dim = kwargs['state_dim']
-    Gamma = kwargs['Gamma']
-    sliding_window_instance = kwargs['sliding_window_instance']
-    H_T_q = sliding_window_instance.H_T_q
-    H_T_p = sliding_window_instance.H_T_p
-    Q_u = sliding_window_instance.Q_u
-    q = qpu_vec[:state_dim]
-    p = qpu_vec[state_dim:2*state_dim]
-    u = qpu_vec[2*state_dim:]
-    q_dot =  H_T_p(q,p,u)
-    p_dot = -1*H_T_q(q,p,u)
-    u_dot = -Gamma*Q_u(q,p,u)
-    qpu_dot_vec = np.hstack([q_dot, p_dot, u_dot])
-    return qpu_dot_vec
+#def rhs(t, qpu_vec, **kwargs):
+#    '''
+#    Inputs: t (integer): time at which the differential equations are being evaluated
+#        qpu_vec (np.array): value at current time to be propagated forward according to dynamics.
+#        **kwargs:  arguments passed to corresponding functions for dynamics of q, p, and u.
+#    Outputs:
+#        qpu_dot_vec (np.array): values for differential equations for  q, p, and u at current time interval.  These values are consumed by the numerical integration to propagate the dynamics.
+#    '''
+#    state_dim = kwargs['state_dim']
+#    Gamma = kwargs['Gamma']
+#    sliding_window_instance = kwargs['sliding_window_instance']
+#    H_T_q = sliding_window_instance.H_T_q
+#    H_T_p = sliding_window_instance.H_T_p
+#    Q_u = sliding_window_instance.Q_u
+#    q = qpu_vec[:state_dim]
+#    p = qpu_vec[state_dim:2*state_dim]
+#    u = qpu_vec[2*state_dim:]
+#    q_dot =  H_T_p(q,p,u)
+#    p_dot = -1*H_T_q(q,p,u)
+#    u_dot = -Gamma*Q_u(q,p,u)
+#    qpu_dot_vec = np.hstack([q_dot, p_dot, u_dot])
+#    return qpu_dot_vec
 
 def propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state_dim, Gamma, sliding_window_instance):
     '''
