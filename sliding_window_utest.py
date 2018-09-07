@@ -23,17 +23,23 @@ class FunctionalTestCase(unittest.TestCase):
             '''
             Implementation of SlidingWindow abc
             '''
-            def H_T_p(self, q,p,u):
+            def qp_rhs(self, t, qp_vec, **kwargs):
+                p = qp_vec[:len(qp_vec)/2]
+                q = qp_vec[len(qp_vec)/2:]
+                u = kwargs['u_0']
                 # for q-dot
-                return np.zeros(np.shape(q))
-            
-            def H_T_q(self, q,p,u):
+                q_dot =  np.zeros(np.shape(p))
                 # for p-dot
-                return np.zeros(np.shape(p))
-                
-            def Q_u(self, q,p,u):
+                p_dot =  np.zeros(np.shape(q))
+                return np.concatenate([q_dot, p_dot])
+              
+            def u_rhs(self, t, u_vec, **kwargs):
+                qp_vec = kwargs['qp_vec']
+                p = qp_vec[:len(qp_vec)/2]
+                q = qp_vec[len(qp_vec)/2:]
+                Gamma = kwargs['Gamma']
                 # for u-dot
-                return np.zeros(np.shape(u))
+                return -1*Gamma*np.zeros(np.shape(u_vec))
         
             # Inputs for numerical propagator
             q_0 = np.array([0])
@@ -51,10 +57,9 @@ class FunctionalTestCase(unittest.TestCase):
             t_0 = 0
             T =  2
             K=1
-            
-            # inputs for sliding window 
             t_terminal = 2
-        
+            n_s = 10
+
         self.sliding_window_instance = SlidingWindowExample()
  
     def test_sliding_window_simpleCase(self):
@@ -82,8 +87,6 @@ def suite_test():
     """
     suite = unittest.TestSuite()
     suite.addTest(FunctionalTestCase('test_sliding_window_simpleCase'))
-    #suite.addTest(FunctionalTestCase('test_sliding_window_simpleCase'))
-    #suite.addTest(FunctionalTestCase('test_sliding_window_simpleCase'))
     return suite
 
 
