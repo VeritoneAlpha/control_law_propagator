@@ -9,7 +9,7 @@ import numpy as np
 import abc
 import scipy as sp
 import ode
-from clp_init import *
+#from clp_init import *
 
 
 class SlidingWindow(object):
