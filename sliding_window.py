@@ -85,16 +85,23 @@ class SlidingWindowExample(SlidingWindow):
     '''
     Implementation of SlidingWindow abc
     '''
-    def qp_rhs(self, q,p,u):
+    def qp_rhs(self, t, qp_vec, **kwargs):
+        p = qp_vec[:len(qp_vec)/2]
+        q = qp_vec[len(qp_vec)/2:]
+        u = kwargs['u_0']
         # for q-dot
         q_dot =  np.zeros(np.shape(p))
         # for p-dot
         p_dot =  np.zeros(np.shape(q))
         return np.concatenate([q_dot, p_dot])
       
-    def u_rhs(self, q,p,u):
+    def u_rhs(self, t, u_vec, **kwargs):
+        qp_vec = kwargs['qp_vec']
+        p = qp_vec[:len(qp_vec)/2]
+        q = qp_vec[len(qp_vec)/2:]
+        Gamma = kwargs['Gamma']
         # for u-dot
-        return np.zeros(np.shape(u))
+        return -1*Gamma*np.zeros(np.shape(u_vec))
 
     # Inputs for numerical propagator
     q_0 = np.array([0])
