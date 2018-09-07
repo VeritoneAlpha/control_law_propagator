@@ -120,6 +120,7 @@ class SlidingWindowExample(SlidingWindow):
     T =  2
     K=1
     t_terminal = 2
+    n_s = 10
 
 
 #def rhs(t, qpu_vec, **kwargs):
