@@ -55,26 +55,25 @@ class FunctionalTestCase(unittest.TestCase):
             
             # Inputs for sliding window
             t_0 = 0
-            T =  2
-            K=1
+            T = 2
+            K = 1
             t_terminal = 2
             n_s = 10
 
         self.sliding_window_instance = SlidingWindowExample()
  
     def test_sliding_window_simpleCase(self):
-        # setup parameters, data  and initial point for testing function
-
+        # setup parameters, data and initial point for testing function
         # call sliding window 
-        q_bars, p_bars, u_bars = sliding_window.sliding_window(self.sliding_window_instance)
-        print q_bars
-        print p_bars
-        print u_bars
+        qpu_vec, q_bar, p_bar, u_bar, qs, ps, us = sliding_window.propagate_dynamics(self.sliding_window_instance)
+        print q_bar
+        print p_bar
+        print u_bar
         # compare with expected results 
-        q_bars_expected = [np.array([0.]), np.array([0.])]
-        p_bars_expected = [np.array([0.]), np.array([0.])]
-        u_bars_expected = [np.array([0.]), np.array([0.])]
-        actuals = [q_bars, p_bars, u_bars]
+        q_bars_expected = [np.array([0.])]
+        p_bars_expected = [np.array([0.])]
+        u_bars_expected = [np.array([0.])]
+        actuals = [q_bar, p_bar, u_bar]
         expecteds = [q_bars_expected, p_bars_expected, u_bars_expected]
         for actual, expected in zip(actuals,expecteds):
             for actual_val, elm in zip(actual,expected):

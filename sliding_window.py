@@ -120,18 +120,21 @@ class SlidingWindowExample(SlidingWindow):
     t_terminal = 2
     n_s = 10
 
-def propagate_dynamics(qpu_vec, sliding_window_instance):
+def propagate_dynamics(sliding_window_instance):
     '''
-    n_s is number of steps
+    Inputs:
+        sliding_window_instance (instance of user-defined class which inherits SlidingWindow): object defining the dynamics, and the initial conditions and parameters for numerical integration/propagation. 
+    Outputs:
+        q_bars, p_bars, u_bars (each is a list of np.arrays): implemented state/costate/control values for entire propagator.
     '''
     qs=[]
     ps=[]
     us=[]
     t_0, T, K, integrateTol, integrateMaxIter, state_dim, Gamma = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, sliding_window_instance.state_dim, sliding_window_instance.Gamma 
-    #     ts = range(t_0,T+1,(T-t_0)/float(2*K))  # go until T+1 because last value will be used as starting point for next window
+    weights, weights_total = get_weights(K)
     ts = np.linspace(t_0, T, (2*K)+1)
+    qpu_vec = sliding_window_instance.qpu_vec
     for i in range(len(ts)-1):
-        # starting value of u for a single bucket
         t_start, t_end = ts[i], ts[i+1]
         q_0 = qpu_vec[:state_dim]
         p_0 = qpu_vec[state_dim:2*state_dim]
@@ -148,7 +151,10 @@ def propagate_dynamics(qpu_vec, sliding_window_instance):
             qs.append(qpu_vec[:state_dim])
             ps.append(qpu_vec[state_dim:2*state_dim])
             us.append(qpu_vec[2*state_dim:])
-    return qpu_vec, qs, ps, us  # return values for one entire window
+    q_bar = apply_filter(qs, weights, weights_total)
+    p_bar = apply_filter(ps, weights, weights_total)
+    u_bar = apply_filter(us, weights, weights_total)
+    return qpu_vec, q_bar, p_bar, u_bar, qs, ps, us  # return values for one entire window
 
     
 def propagate_q_p(q_0, p_0, u_0, t_start, t_end, sliding_window_instance):
@@ -165,8 +171,8 @@ def propagate_q_p(q_0, p_0, u_0, t_start, t_end, sliding_window_instance):
         qp_vecs.append(qp_vec[-1])
         qp_vec = qp_vec[-1]
     return qp_vecs
-    
-    
+
+
 def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance):
     '''
     Propagate u based on q and p values
@@ -183,8 +189,8 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance):
         u_vecs.append(u_vec[-1]) # one u_vec for each step, append them and you have all the u_vecs for one bucket
         u_vec = u_vec[-1]
     return u_vecs
-        
-      
+
+
 def get_weights(K):
     '''
     Inputs:
@@ -201,6 +207,7 @@ def get_weights(K):
     weights_total = sum(weights[:-1])
     return weights, weights_total
 
+
 def apply_filter(vec, weights, weights_total):
     '''
     Inputs:
@@ -216,47 +223,45 @@ def apply_filter(vec, weights, weights_total):
     vec_normalized = vec_current/float(weights_total)
     return vec_normalized
 
-def sliding_window(sliding_window_instance):
-    '''
-    Inputs:
-        t_0 (float): Initial time to start propagating dynamics
-        T (float): End time of propagating dynamics 
-        q_0 (np.array): initial values of state vector
-        p_0 (np.array): initial values of costate vector
-        u_0 (np.array): initial values of control vector
-        state_dim (int): number of states
-        Gamma (float): algorithmic parameter for Riemann descent algorithm
-        t_terminal (int): time marking termination of control law propagator algorithm
-    Outputs:
-        q_bars, p_bars, u_bars (each is a list of np.arrays): implemented state/costate/control values for entire propagator.
-    ''' 
-    t_0, T, K, q_0, p_0, u_0, state_dim, Gamma, t_terminal, integrateTol, integrateMaxIter = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K, sliding_window_instance.q_0, sliding_window_instance.p_0, sliding_window_instance.u_0, sliding_window_instance.state_dim, sliding_window_instance.Gamma, sliding_window_instance.t_terminal, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter
-    q_bars = []
-    p_bars = []
-    u_bars = []
-    weights, weights_total = get_weights(K)
-    t=t_0 # wall clock time
-    qpu_vec = np.hstack([q_0, p_0, u_0])
-    while t<t_terminal:
-        
-        qpu_vec, qs, ps, us = propagate_dynamics(qpu_vec, sliding_window_instance)
-        # qs, ps, and us will go to Mean Field somehow
 
-        q_bar = apply_filter(qs, weights, weights_total)
-        p_bar = apply_filter(ps, weights, weights_total)
-        u_bar = apply_filter(us, weights, weights_total)
-        
-        t+=1
-        
-        q_bars.append(q_bar)
-        p_bars.append(p_bar)
-        u_bars.append(u_bar)
+#### deprecated function - leaving it here because sliding window used for multiple window lengths will be called in a different module
 
-    return q_bars, p_bars, u_bars
+#def sliding_window(sliding_window_instance):
+#    '''
+#    Inputs:
+#        t_0 (float): Initial time to start propagating dynamics
+#        T (float): End time of propagating dynamics 
+#        q_0 (np.array): initial values of state vector
+#        p_0 (np.array): initial values of costate vector
+#        u_0 (np.array): initial values of control vector
+#        state_dim (int): number of states
+#        Gamma (float): algorithmic parameter for Riemann descent algorithm
+#        t_terminal (int): time marking termination of control law propagator algorithm
+#    Outputs:
+#        q_bars, p_bars, u_bars (each is a list of np.arrays): implemented state/costate/control values for entire propagator.
+#    ''' 
+#    t_0, T, K, q_0, p_0, u_0, state_dim, Gamma, t_terminal, integrateTol, integrateMaxIter = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K, sliding_window_instance.q_0, sliding_window_instance.p_0, sliding_window_instance.u_0, sliding_window_instance.state_dim, sliding_window_instance.Gamma, sliding_window_instance.t_terminal, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter
+#    q_bars = []
+#    p_bars = []
+#    u_bars = []
+#    weights, weights_total = get_weights(K)
+#    t=t_0 # wall clock time
+#    qpu_vec = np.hstack([q_0, p_0, u_0])
+#    while t<t_terminal:
+#        
+#        qpu_vec, qs, ps, us = propagate_dynamics(qpu_vec, sliding_window_instance)
+#        # qs, ps, and us will go to Mean Field somehow
+#
+#        q_bar = apply_filter(qs, weights, weights_total)
+#        p_bar = apply_filter(ps, weights, weights_total)
+#        u_bar = apply_filter(us, weights, weights_total)
+#        
+#        t+=1
+#        
+#        q_bars.append(q_bar)
+#        p_bars.append(p_bar)
+#        u_bars.append(u_bar)
+#
+#    return q_bars, p_bars, u_bars
 
-mySlidingWindow = SlidingWindowExample()
-q_bars, p_bars, u_bars = sliding_window(mySlidingWindow)
-print 'sliding window finished propagating. Resulting values are:'
-print q_bars
-print p_bars
-print u_bars
+
