@@ -9,7 +9,6 @@ import numpy as np
 import abc
 import scipy as sp
 import ode
-#from clp_init import *
 
 
 class SlidingWindow(object):
@@ -17,15 +16,14 @@ class SlidingWindow(object):
     This will be an abstract base class that mandates the user to define the following:
    
      Functions for dynamics, which take in three numpy arrays as inputs, and returns an numpy array
-        H_T_p(q,p,u) 
-        H_T_q(q,p,u)
-        Q_u(q,p,u)
+        qp_rhs(q,p,u) 
+        u_rhs(q,p,u)
     
     Initial conditions for q,p, and u, (all numpy arrays):
         q_0, p_0, u_0 
 
-    t_0 (start time in integer)
-    T (length of one window)
+    t_0 (start time in float)
+    T (end time of window in float)
     K (number of intervals for half the window)
     Gamma (algorithmic parameter for Riemann descent)
     t_terminal (end time of control law propagator)
@@ -186,42 +184,7 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance):
         u_vec = u_vec[-1]
     return u_vecs
         
-#def propagate_dynamics(t_0, T, K, qpu_vec, integrateTol, integrateMaxIter, state_dim, Gamma, sliding_window_instance):
-#    '''
-#    Inputs:
-#        t_0 (integer): Initial time to start propagating dynamics
-#        T (integer): End time of propagating dynamics 
-#        qpu_vec (np.array): initial values for q, p, and u to be propagated forward according to dynamics.
-#        integrateTol (float):  local error tolerance in numerical integration 
-# for the solution
-#        maxIter  (int):  maximal iterations allowed for executing nemerical integration
-#        state_dim (int): number of states
-#        Gamma (float): algorithmic parameter for Riemann descent algorithm
-#        sliding_window_instance (instance of class SlidingWindow): object holding the rhs dynamics equations
-#    Outputs:
-#        qpu_vec (np.array): ending values for q, p, and u 
-#        qs, ps, us (lists of np.arrays): intermediate values for q, p, and u, respectively
-#    '''
-#    qs=[]
-#    ps=[]
-#    us=[]
-#
-#    ts = range(t_0,T+1,(T-t_0)/(2*K)) # go until T+1 because last value will be used as starting point for next window
-#
-#    for i in range(len(ts)-1):
-#        t_start, t_end = ts[i], ts[i+1]
-#        qpu_vec_i, t, failFlag, iter_i = ode.ode_rk23(rhs, t_start, t_end, qpu_vec, integrateTol, integrateMaxIter, state_dim=state_dim, Gamma = Gamma, sliding_window_instance=sliding_window_instance)
-#        qpu_vec = qpu_vec_i[-1] # only need the last value
-#        if i == len(ts)-2 :
-#            pass 
-#            # no need to append since weight = 0 for last value.  but qpu_vec still needs to be updated.
-#        else:
-#            qs.append(qpu_vec[:state_dim])
-#            ps.append(qpu_vec[state_dim:2*state_dim])
-#            us.append(qpu_vec[2*state_dim:])
-#
-#    return qpu_vec, qs, ps, us
-       
+      
 def get_weights(K):
     '''
     Inputs:
@@ -256,8 +219,8 @@ def apply_filter(vec, weights, weights_total):
 def sliding_window(sliding_window_instance):
     '''
     Inputs:
-        t_0 (int): Initial time to start propagating dynamics
-        T (int): End time of propagating dynamics 
+        t_0 (float): Initial time to start propagating dynamics
+        T (float): End time of propagating dynamics 
         q_0 (np.array): initial values of state vector
         p_0 (np.array): initial values of costate vector
         u_0 (np.array): initial values of control vector
