@@ -120,7 +120,7 @@ class SlidingWindowExample(SlidingWindow):
     t_terminal = 2
     n_s = 10
 
-def propagate_dynamics(sliding_window_instance):
+def propagate_dynamics(sliding_window_instance): 
     '''
     Inputs:
         sliding_window_instance (instance of user-defined class which inherits SlidingWindow): object defining the dynamics, and the initial conditions and parameters for numerical integration/propagation. 
@@ -140,8 +140,9 @@ def propagate_dynamics(sliding_window_instance):
         p_0 = qpu_vec[state_dim:2*state_dim]
         u_0 = qpu_vec[2*state_dim:]
         qp_vecs = propagate_q_p(q_0, p_0, u_0, t_start, t_end, sliding_window_instance)  # assume "u" constant, and propagate q and p
-        u_vecs = propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance)      # pass in the resulting q and p values to be used for propagating the "u"
-        
+        # prepend initial condition for q and p for propagating u
+        lhs_qp_vecs = [np.hstack([q_0, p_0])] + qp_vecs[:-1]
+        u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance)      # pass in the resulting lhs q and p values to be used for propagating the "u"
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
         if i == len(ts)-2:
