@@ -84,19 +84,27 @@ class SlidingWindowExample(SlidingWindow):
     Implementation of SlidingWindow abc
     '''
     def qp_rhs(self, t, qp_vec, **kwargs):
-        p = qp_vec[:len(qp_vec)/2]
-        q = qp_vec[len(qp_vec)/2:]
+        dim = len(qp_vec)/4
+        q = qp_vec[:dim]
+	p = qp_vec[dim:2*dim]
+        q_D = qp_vec[2*dim:3*dim]
+        p_D = qp_vec[3*dim:]
         u = kwargs['u_0']
         # for q-dot
         q_dot =  np.zeros(np.shape(p))
         # for p-dot
         p_dot =  np.zeros(np.shape(q))
-        return np.concatenate([q_dot, p_dot])
+        q_D_dot =  np.zeros(np.shape(p))
+        p_D_dot =  np.zeros(np.shape(q))
+        return np.concatenate([q_dot, p_dot, q_D_dot, p_D_dot])
       
     def u_rhs(self, t, u_vec, **kwargs):
         qp_vec = kwargs['qp_vec']
-        p = qp_vec[:len(qp_vec)/2]
-        q = qp_vec[len(qp_vec)/2:]
+        dim = len(qp_vec)/4
+        q = qp_vec[:dim]
+	p = qp_vec[dim:2*dim]
+        q_D = qp_vec[2*dim:3*dim]
+        p_D = qp_vec[3*dim:]
         Gamma = kwargs['Gamma']
         # for u-dot
         return -1*Gamma*np.zeros(np.shape(u_vec))
@@ -104,8 +112,10 @@ class SlidingWindowExample(SlidingWindow):
     # Inputs for numerical propagator
     q_0 = np.array([0])
     p_0 = np.array([0])
+    q_D = np.array([0])
+    p_D = np.array([0])
     u_0 = np.array([0])
-    qpu_vec = np.hstack([q_0, p_0, u_0])
+    qpu_vec = np.hstack([q_0, p_0, q_D, p_D, u_0])
     state_dim = 1
     Gamma = 1
     
@@ -136,12 +146,14 @@ def propagate_dynamics(sliding_window_instance):
     qpu_vec = sliding_window_instance.qpu_vec
     for i in range(len(ts)-1):
         t_start, t_end = ts[i], ts[i+1]
-        q_0 = qpu_vec[:state_dim]
-        p_0 = qpu_vec[state_dim:2*state_dim]
-        u_0 = qpu_vec[2*state_dim:]
-        qp_vecs = propagate_q_p(q_0, p_0, u_0, t_start, t_end, sliding_window_instance)  # assume "u" constant, and propagate q and p
+        #q_0 = qpu_vec[:state_dim]
+        #p_0 = qpu_vec[state_dim:2*state_dim]
+        #q_D = qpu_vec[2*state_dim:3*state_dim]
+        #p_D = qpu_vec[3*state_dim:4*state_dim]
+        u_0 = qpu_vec[4*state_dim:]
+        qp_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance)  # assume "u" constant, and propagate q and p
         # prepend initial condition for q and p for propagating u
-        lhs_qp_vecs = [np.hstack([q_0, p_0])] + qp_vecs[:-1]
+        lhs_qp_vecs = [qpu_vec[-1:]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
         u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance)      # pass in the resulting lhs q and p values to be used for propagating the "u"
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
@@ -151,21 +163,30 @@ def propagate_dynamics(sliding_window_instance):
         else:
             qs.append(qpu_vec[:state_dim])
             ps.append(qpu_vec[state_dim:2*state_dim])
-            us.append(qpu_vec[2*state_dim:])
+            q_Ds.append(qpu_vec[2*state_dim:3*state_dim])
+            p_Ds.append(qpu_vec[3*state_dim:4*state_dim])
+            us.append(qpu_vec[4*state_dim:])
     q_bar = apply_filter(qs, weights, weights_total)
     p_bar = apply_filter(ps, weights, weights_total)
+    q_D_bar = apply_filter(q_Ds, weights, weights_total)
+    p_D_bar = apply_filter(p_Ds, weights, weights_total)
     u_bar = apply_filter(us, weights, weights_total)
-    return qpu_vec, q_bar, p_bar, u_bar, qs, ps, us  # return values for one entire window
+    return qpu_vec, q_bar, p_bar, q_D_bar, p_D_bar,  u_bar, qs, ps, q_Ds, p_Ds, us  # return values for one entire window
 
     
-def propagate_q_p(q_0, p_0, u_0, t_start, t_end, sliding_window_instance):
+def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
     '''
     Propagate q and p to end of bucket using rk23
     '''
     n_s = sliding_window_instance.n_s
+    q_0 = qpu_vec[:state_dim]
+    p_0 = qpu_vec[state_dim:2*state_dim]
+    q_D = qpu_vec[2*state_dim:3*state_dim]
+    p_D = qpu_vec[3*state_dim:4*state_dim]
+    u_0 = qpu_vec[4*state_dim:]
     qp_vecs = []
-    qp_vec = np.concatenate([q_0, p_0])  # pass in all three: q_0, p_0, u_0, but in the qp_rhs function
-    steps = np.linspace(t_start,t_end, n_s+1)
+    qp_vec = np.concatenate([q_0, p_0, q_D, p_D])  # pass in all three: q_0, p_0, u_0, but in the qp_rhs function
+    steps = np.linspace(t_start, t_end, n_s+1)
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
         qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0)
