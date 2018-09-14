@@ -139,6 +139,8 @@ def propagate_dynamics(sliding_window_instance):
     '''
     qs=[]
     ps=[]
+    q_Ds=[]
+    p_Ds=[]
     us=[]
     t_0, T, K, integrateTol, integrateMaxIter, state_dim, Gamma = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, sliding_window_instance.state_dim, sliding_window_instance.Gamma 
     weights, weights_total = get_weights(K)
@@ -178,6 +180,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
     '''
     Propagate q and p to end of bucket using rk23
     '''
+    state_dim = sliding_window_instance.state_dim
     n_s = sliding_window_instance.n_s
     q_0 = qpu_vec[:state_dim]
     p_0 = qpu_vec[state_dim:2*state_dim]
