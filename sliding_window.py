@@ -78,6 +78,14 @@ class SlidingWindow(object):
     def t_terminal(self): 
         return
 
+    @abc.abstractproperty
+    def state_dim_l(self): 
+        return
+
+    @abc.abstractproperty
+    def state_dim_mf(self): 
+        return
+
 
 class SlidingWindowExample(SlidingWindow):
     '''
