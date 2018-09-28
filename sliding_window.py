@@ -78,14 +78,6 @@ class SlidingWindow(object):
     def t_terminal(self): 
         return
 
-    @abc.abstractproperty
-    def state_dim_l(self): 
-        return
-
-    @abc.abstractproperty
-    def state_dim_mf(self): 
-        return
-
 
 class SlidingWindowExample(SlidingWindow):
     '''
@@ -99,11 +91,11 @@ class SlidingWindowExample(SlidingWindow):
         p_D = qp_vec[3*dim:]
         u = kwargs['u_0']
         # for q-dot
-        q_dot =  np.zeros(np.shape(p))
+        q_dot = np.zeros(np.shape(p))
         # for p-dot
-        p_dot =  np.zeros(np.shape(q))
-        q_D_dot =  np.zeros(np.shape(p))
-        p_D_dot =  np.zeros(np.shape(q))
+        p_dot = np.zeros(np.shape(q))
+        q_D_dot = np.zeros(np.shape(p))
+        p_D_dot = np.zeros(np.shape(q))
         return np.concatenate([q_dot, p_dot, q_D_dot, p_D_dot])
       
     def u_rhs(self, t, u_vec, **kwargs):
