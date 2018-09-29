@@ -65,6 +65,7 @@ def ode_rk23(F, a, b, y0, tol, maxIter, **kwargs):
     ''' 
 
     # Initialization
+    import pdb; pdb.set_trace()
     tTime = np.array([a])
     failFlag = False
     y = np.array(y0)    
