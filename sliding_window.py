@@ -137,10 +137,9 @@ def propagate_dynamics(sliding_window_instance):
     Outputs:
         q_bars, p_bars, u_bars (each is a list of np.arrays): implemented state/costate/control values for entire propagator.
     '''
-    qs=[]
-    ps=[]
-    q_Ds=[]
-    p_Ds=[]
+    q_ls=[]
+    p_ls=[]
+    p_mfs=[]
     us=[]
     t_0, T, K, integrateTol, integrateMaxIter, state_dim, Gamma = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, sliding_window_instance.state_dim, sliding_window_instance.Gamma 
     weights, weights_total = get_weights(K)
@@ -148,7 +147,7 @@ def propagate_dynamics(sliding_window_instance):
     qpu_vec = sliding_window_instance.qpu_vec
     for i in range(len(ts)-1):
         t_start, t_end = ts[i], ts[i+1]
-        u_0 = qpu_vec[4*state_dim:]
+        u_0 = qpu_vec[3*state_dim:]
         qp_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance)  # assume "u" constant, and propagate q and p
         # prepend initial condition for q and p for propagating u
         lhs_qp_vecs = [qpu_vec[-1:]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
@@ -159,17 +158,15 @@ def propagate_dynamics(sliding_window_instance):
             pass
             # no need to append since weight = 0 for last value.  But qpu_vec still needs to be updated.
         else:
-            qs.append(qpu_vec[:state_dim])
-            ps.append(qpu_vec[state_dim:2*state_dim])
-            q_Ds.append(qpu_vec[2*state_dim:3*state_dim])
-            p_Ds.append(qpu_vec[3*state_dim:4*state_dim])
-            us.append(qpu_vec[4*state_dim:])
-    q_bar = apply_filter(qs, weights, weights_total)
-    p_bar = apply_filter(ps, weights, weights_total)
-    q_D_bar = apply_filter(q_Ds, weights, weights_total)
-    p_D_bar = apply_filter(p_Ds, weights, weights_total)
+            q_ls.append(qpu_vec[:state_dim])
+            p_ls.append(qpu_vec[state_dim:2*state_dim])
+            p_mfs.append(qpu_vec[2*state_dim:3*state_dim])
+            us.append(qpu_vec[3*state_dim:])
+    q_ls_bar = apply_filter(q_ls, weights, weights_total)
+    p_ls_bar = apply_filter(p_ls, weights, weights_total)
+    p_mfs_bar = apply_filter(p_mfs, weights, weights_total)
     u_bar = apply_filter(us, weights, weights_total)
-    return qpu_vec, q_bar, p_bar, q_D_bar, p_D_bar,  u_bar, qs, ps, q_Ds, p_Ds, us  # return values for one entire window
+    return qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us  # return values for one entire window
 
     
 def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
@@ -178,13 +175,12 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
     '''
     state_dim = sliding_window_instance.state_dim
     n_s = sliding_window_instance.n_s
-    q_0 = qpu_vec[:state_dim]
-    p_0 = qpu_vec[state_dim:2*state_dim]
-    q_D = qpu_vec[2*state_dim:3*state_dim]
-    p_D = qpu_vec[3*state_dim:4*state_dim]
-    u_0 = qpu_vec[4*state_dim:]
+    q_l_0 = qpu_vec[:state_dim]
+    p_l_0 = qpu_vec[state_dim:2*state_dim]
+    p_mf_0 = qpu_vec[2*state_dim:3*state_dim]
+    u_0 = qpu_vec[3*state_dim:]
     qp_vecs = []
-    qp_vec = np.concatenate([q_0, p_0, q_D, p_D])  # pass in all three: q_0, p_0, u_0, but in the qp_rhs function
+    qp_vec = np.concatenate([q_l_0, p_l_0, p_mf_0])  # pass in all three: q_0, p_0, u_0, but in the qp_rhs function
     steps = np.linspace(t_start, t_end, n_s+1)
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
