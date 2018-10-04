@@ -87,24 +87,18 @@ class SlidingWindowExample(SlidingWindow):
         dim = len(qp_vec)/4
         q = qp_vec[:dim]
 	p = qp_vec[dim:2*dim]
-        q_D = qp_vec[2*dim:3*dim]
-        p_D = qp_vec[3*dim:]
         u = kwargs['u_0']
         # for q-dot
         q_dot = np.zeros(np.shape(p))
         # for p-dot
         p_dot = np.zeros(np.shape(q))
-        q_D_dot = np.zeros(np.shape(p))
-        p_D_dot = np.zeros(np.shape(q))
-        return np.concatenate([q_dot, p_dot, q_D_dot, p_D_dot])
+        return np.concatenate([q_dot, p_dot])
       
     def u_rhs(self, t, u_vec, **kwargs):
         qp_vec = kwargs['qp_vec']
         dim = len(qp_vec)/4
         q = qp_vec[:dim]
 	p = qp_vec[dim:2*dim]
-        q_D = qp_vec[2*dim:3*dim]
-        p_D = qp_vec[3*dim:]
         Gamma = kwargs['Gamma']
         # for u-dot
         return -1*Gamma*np.zeros(np.shape(u_vec))
@@ -112,10 +106,8 @@ class SlidingWindowExample(SlidingWindow):
     # Inputs for numerical propagator
     q_0 = np.array([0])
     p_0 = np.array([0])
-    q_D = np.array([0])
-    p_D = np.array([0])
     u_0 = np.array([0])
-    qpu_vec = np.hstack([q_0, p_0, q_D, p_D, u_0])
+    qpu_vec = np.hstack([q_0, p_0, u_0])
     state_dim = 1
     Gamma = 1
     
