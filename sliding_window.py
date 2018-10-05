@@ -23,7 +23,7 @@ class SlidingWindow(object):
         q_0, p_0, u_0 
 
     t_0 (start time in float)
-    T (end time of window in float)
+    T (duration of time of window in float)
     K (number of intervals for half the window)
     Gamma (algorithmic parameter for Riemann descent)
     t_terminal (end time of control law propagator)
