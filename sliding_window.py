@@ -142,7 +142,7 @@ def propagate_dynamics(sliding_window_instance):
         u_0 = qpu_vec[3*state_dim:]
         qp_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance)  # assume "u" constant, and propagate q and p
         # prepend initial condition for q and p for propagating u
-        lhs_qp_vecs = [qpu_vec[-1:]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
+        lhs_qp_vecs = [qpu_vec[:-1]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
         u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance)      # pass in the resulting lhs q and p values to be used for propagating the "u"
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
