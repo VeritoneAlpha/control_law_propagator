@@ -146,6 +146,9 @@ def propagate_dynamics(sliding_window_instance):
         u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance)      # pass in the resulting lhs q and p values to be used for propagating the "u"
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
+        # Since control, u has changed, the manifold has changed and we must update p_MF and p_l using the same q and q-dot values
+        qpu_vec = compute_p_mf_p_l(qpu_vec, sliding_window_instance)
+
         if i == len(ts)-2:
             pass
             # no need to append since weight = 0 for last value.  But qpu_vec still needs to be updated.
@@ -154,6 +157,7 @@ def propagate_dynamics(sliding_window_instance):
             p_ls.append(qpu_vec[state_dim:2*state_dim])
             p_mfs.append(qpu_vec[2*state_dim:3*state_dim])
             us.append(qpu_vec[3*state_dim:])
+                         
     q_ls_bar = apply_filter(q_ls, weights, weights_total)
     p_ls_bar = apply_filter(p_ls, weights, weights_total)
     p_mfs_bar = apply_filter(p_mfs, weights, weights_total)
@@ -232,4 +236,11 @@ def apply_filter(vec, weights, weights_total):
     vec_normalized = vec_current/float(weights_total)
     return vec_normalized
 
+def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
+    '''
+    
+    '''
+    p_l = sliding_window_instance.L_l_q_dot()
+    p_mf = sliding_window_instance.L_l_q_dot()
+    return qpu_vec
 
