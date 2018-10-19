@@ -240,6 +240,7 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
     '''
     
     '''
+    
     p_l = sliding_window_instance.L_l_q_dot()
     p_mf = sliding_window_instance.L_l_q_dot()
     return qpu_vec
