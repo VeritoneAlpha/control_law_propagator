@@ -253,14 +253,19 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
 
 def overwrite_qp_with_quenched_values(qp_vec, sliding_window_instance, q_p_u_dict):
     '''
+    Inputs:
+        qp_vec (1-D numpy array): array, specific to the agent that holds values for states and costates
+    Outputs:
+        qp_vec (1-D numpy array): with *quenched* states
     ''' 
     state_dim = sliding_window_instance.state_dim
     state_indices = sliding_window_instance.state_indices
     for k, elm in enumerate(qp_vec):
         # if k is in state_indices, do nothing (i.e. don't quench)
         # if k is not in state_indices, then substitute the value from q_p_u_dict
-        if k not in state_indices:
-           qp_vec[k] = q_p_u_dict['q_s'][str(k+1)] 
+        if k+1 not in state_indices:
+           print 'quenching state '+str(k+1)+' for agent '+str(sliding_window_instance)
+           qp_vec[k] = q_p_u_dict['q_s'][str(k+1)]
            qp_vec[state_dim+k] = q_p_u_dict['p_l'][str(k+1)]
            qp_vec[2*state_dim+k] = q_p_u_dict['p_mf'][str(k+1)]
-        
+
