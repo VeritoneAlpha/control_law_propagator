@@ -170,6 +170,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
     Propagate q and p to end of bucket using rk23
     '''
     state_dim = sliding_window_instance.state_dim
+    state_indices = sliding_window_instance.state_indices
     n_s = sliding_window_instance.n_s
     q_l_0 = qpu_vec[:state_dim]
     p_l_0 = qpu_vec[state_dim:2*state_dim]
@@ -178,9 +179,13 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
     qp_vecs = []
     qp_vec = np.concatenate([q_l_0, p_l_0, p_mf_0])  # pass in all three: q_0, p_0, u_0, but in the qp_rhs function
     steps = np.linspace(t_start, t_end, n_s+1)
+       
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
         qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0)
+
+        # use state_indices to overwrite
+        qp_vec = overwrite_with_quenched_values(qp_vec, state_indices, sliding_window_instance.bb.q_p_u_dict)
         qp_vecs.append(qp_vec[-1])
         qp_vec = qp_vec[-1]
     return qp_vecs
@@ -238,10 +243,25 @@ def apply_filter(vec, weights, weights_total):
 
 def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
     '''
-    
     '''
     
     p_l = sliding_window_instance.L_l_q_dot()
     p_mf = sliding_window_instance.L_l_q_dot()
     return qpu_vec
 
+def overwrite_qp_with_quenched_values(qp_vec, state_indices, q_p_u_dict):
+    '''
+    ''' 
+    state_dim = sliding_window_instance.state_dim
+    for k, elm in enumerate(qp_vec):
+        # if k is in state_indices, do nothing (i.e. don't quench)
+        # if k is not in state_indices, then substitute the value from q_p_u_dict
+        if k not in state_indices:
+           qp_vec[k] = q_p_u_dict['q_s'][str(k)] 
+           qp_vec[state_dim+k] = q_p_u_dict['p_l'][str(k)]
+           qp_vec[2*state_dim+k] = q_p_u_dict['p_mf'][str(k)]
+           # {'q_s':{}, 'p_l':{}, 'p_mf':{}, 'u_s':{}, 'q_s_dot':{}}
+           # self.q_p_u_dict['q_s'][str(state_ix)] = agent.qpu_vec[:agent.state_dim][state_ix-1]
+           # self.q_p_u_dict['p_l'][str(state_ix)] = agent.qpu_vec[agent.state_dim:2*agent.state_dim][state_ix-1]
+           # self.q_p_u_dict['p_mf'][str(state_ix)] = agent.qpu_vec[2*agent.state_dim:3*agent.state_dim][state_ix-1]
+           # self.q_p_u_dict['q_s_dot'][str(state_ix)] = agent.q_s_dot[state_ix-1]
