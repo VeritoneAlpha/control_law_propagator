@@ -147,7 +147,7 @@ def propagate_dynamics(sliding_window_instance):
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
         # Since control, u has changed, the manifold has changed and we must update p_MF and p_l using the same q and q-dot values
-       # qpu_vec = compute_p_mf_p_l(qpu_vec, sliding_window_instance)
+        qpu_vec = compute_p_mf_p_l(qpu_vec, sliding_window_instance)
 
         if i == len(ts)-2:
             pass
@@ -245,8 +245,29 @@ def apply_filter(vec, weights, weights_total):
 def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
     '''q_mf, q_mf_dot, u_mf are vectors holding values for ALL states
     '''
-    p_l = sliding_window_instance.L_l_q_dot(q_mf, q_mf_dot, u_mf)
-    p_mf = sliding_window_instance.L_mf_q_dot(q_mf, q_mf_dot, u_mf)
-    return p_mf, p_l
+    # need to get the values for all states and controls in order to construct q_mf, q_mf_dot, and u_mf
+    # get them from the blackboard
+    # construct q_mf, q_mf_dot, and u_mf using values from the blackboard
+    bb = sliding_window_instance.bb
+    q_s = np.array([]) # this should be an array of values
+    q_s_dot = np.array([]) # this should be an array of values
+    u_s = np.array([]) # this should be an array of values
+    # get the indices that DO NOT PERTAIN to this agent
+    for ix in sliding_window_instance.state_indices:
+        q_s_ix =  bb.q_p_u_dict['q_s'][str(ix)]
+        q_s = np.hstack([q_s, q_s_ix])
 
+        q_s_dot_ix =  bb.q_p_u_dict['q_s_dot'][str(ix)]
+        q_s_dot = np.hstack([q_s_dot, q_s_dot_ix])
+
+    for ix in sliding_window_instance.control_indices:
+        u_s_ix =  bb.q_p_u_dict['u_s'][str(ix)]
+        u_s = np.hstack([u_s, u_s_ix])
+
+        q_s_ix =  bb.q_p_u_dict['q_s'][str(ix)]
+        q_s = np.hstack([q_s, q_s_ix])
+    p_l = sliding_window_instance.L_l_q_dot(q_s, q_s_dot, u_s)
+    # need to prepare the q_mf, q_mf_dot, and u_mf vectors
+    p_mf = sliding_window_instance.sync.L_mf_q_dot(q_mf, q_mf_dot, u_mf)
+    return p_mf, p_l
 
