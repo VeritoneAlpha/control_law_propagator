@@ -147,7 +147,7 @@ def propagate_dynamics(sliding_window_instance):
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
         # Since control, u has changed, the manifold has changed and we must update p_MF and p_l using the same q and q-dot values
-        qpu_vec = compute_p_mf_p_l(qpu_vec, sliding_window_instance)
+       # qpu_vec = compute_p_mf_p_l(qpu_vec, sliding_window_instance)
 
         if i == len(ts)-2:
             pass
@@ -243,28 +243,10 @@ def apply_filter(vec, weights, weights_total):
     return vec_normalized
 
 def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
+    '''q_mf, q_mf_dot, u_mf are vectors holding values for ALL states
     '''
-    '''
-    
-    p_l = sliding_window_instance.L_l_q_dot()
-    p_mf = sliding_window_instance.L_l_q_dot()
-    return qpu_vec
+    p_l = sliding_window_instance.L_l_q_dot(q_mf, q_mf_dot, u_mf)
+    p_mf = sliding_window_instance.L_mf_q_dot(q_mf, q_mf_dot, u_mf)
+    return p_mf, p_l
 
-#def overwrite_qp_with_quenched_values(qp_vec, sliding_window_instance, q_p_u_dict):
-#    '''
-#    Inputs:
-#        qp_vec (1-D numpy array): array, specific to the agent that holds values for states and costates
-#    Outputs:
-#        qp_vec (1-D numpy array): with *quenched* states
-#    ''' 
-#    state_dim = sliding_window_instance.state_dim
-#    state_indices = sliding_window_instance.state_indices
-#    for k, elm in enumerate(qp_vec):
-#        # if k is in state_indices, do nothing (i.e. don't quench)
-#        # if k is not in state_indices, then substitute the value from q_p_u_dict
-#        if k+1 not in state_indices:
-#           print 'quenching state '+str(k+1)+' for agent '+str(sliding_window_instance)
-#           qp_vec[k] = q_p_u_dict['q_s'][str(k+1)]
-#           qp_vec[state_dim+k] = q_p_u_dict['p_l'][str(k+1)]
-#           qp_vec[2*state_dim+k] = q_p_u_dict['p_mf'][str(k+1)]
-#
+
