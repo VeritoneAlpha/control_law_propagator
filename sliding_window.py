@@ -130,6 +130,7 @@ def propagate_dynamics(sliding_window_instance):
         q_bars, p_bars, u_bars (each is a list of np.arrays): implemented state/costate/control values for entire propagator.
     '''
     q_ls=[]
+    import pdb; pdb.set_trace()
     p_ls=[]
     p_mfs=[]
     us=[]
@@ -144,6 +145,7 @@ def propagate_dynamics(sliding_window_instance):
         # prepend initial condition for q and p for propagating u
         lhs_qp_vecs = [qpu_vec[:-1]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
         u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance)      # pass in the resulting lhs q and p values to be used for propagating the "u"
+        import pdb; pdb.set_trace()
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
         # Since control, u has changed, the manifold has changed and we must update p_MF and p_l using the same q and q-dot values
@@ -187,9 +189,8 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
         qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0)
 
         # use state_indices to overwrite
-        # we remove the first array by doing qp_vec[-1] because rk_23 returns the initial value you passed in
-        qp_vec = overwrite_qp_with_quenched_values(qp_vec[-1], sliding_window_instance, sliding_window_instance.bb.q_p_u_dict)
-        qp_vecs.append(qp_vec)
+        # we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
+        qp_vecs.append(qp_vec[-1])
     return qp_vecs
 
 
