@@ -130,7 +130,6 @@ def propagate_dynamics(sliding_window_instance):
         q_bars, p_bars, u_bars (each is a list of np.arrays): implemented state/costate/control values for entire propagator.
     '''
     q_ls=[]
-    import pdb; pdb.set_trace()
     p_ls=[]
     p_mfs=[]
     us=[]
@@ -145,7 +144,6 @@ def propagate_dynamics(sliding_window_instance):
         # prepend initial condition for q and p for propagating u
         lhs_qp_vecs = [qpu_vec[:-1]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
         u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance)      # pass in the resulting lhs q and p values to be used for propagating the "u"
-        import pdb; pdb.set_trace()
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
         # Since control, u has changed, the manifold has changed and we must update p_MF and p_l using the same q and q-dot values
@@ -183,14 +181,14 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
     qp_vecs = []
     qp_vec = np.concatenate([q_l_0, p_l_0, p_mf_0])  # pass in all three: q_0, p_0, u_0, but in the qp_rhs function
     steps = np.linspace(t_start, t_end, n_s+1)
-       
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
         qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0)
 
         # use state_indices to overwrite
         # we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
-        qp_vecs.append(qp_vec[-1])
+        qp_vec=qp_vec[-1]
+        qp_vecs.append(qp_vec)
     return qp_vecs
 
 
@@ -252,21 +250,21 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
     p_mf = sliding_window_instance.L_l_q_dot()
     return qpu_vec
 
-def overwrite_qp_with_quenched_values(qp_vec, sliding_window_instance, q_p_u_dict):
-    '''
-    Inputs:
-        qp_vec (1-D numpy array): array, specific to the agent that holds values for states and costates
-    Outputs:
-        qp_vec (1-D numpy array): with *quenched* states
-    ''' 
-    state_dim = sliding_window_instance.state_dim
-    state_indices = sliding_window_instance.state_indices
-    for k, elm in enumerate(qp_vec):
-        # if k is in state_indices, do nothing (i.e. don't quench)
-        # if k is not in state_indices, then substitute the value from q_p_u_dict
-        if k+1 not in state_indices:
-           print 'quenching state '+str(k+1)+' for agent '+str(sliding_window_instance)
-           qp_vec[k] = q_p_u_dict['q_s'][str(k+1)]
-           qp_vec[state_dim+k] = q_p_u_dict['p_l'][str(k+1)]
-           qp_vec[2*state_dim+k] = q_p_u_dict['p_mf'][str(k+1)]
-
+#def overwrite_qp_with_quenched_values(qp_vec, sliding_window_instance, q_p_u_dict):
+#    '''
+#    Inputs:
+#        qp_vec (1-D numpy array): array, specific to the agent that holds values for states and costates
+#    Outputs:
+#        qp_vec (1-D numpy array): with *quenched* states
+#    ''' 
+#    state_dim = sliding_window_instance.state_dim
+#    state_indices = sliding_window_instance.state_indices
+#    for k, elm in enumerate(qp_vec):
+#        # if k is in state_indices, do nothing (i.e. don't quench)
+#        # if k is not in state_indices, then substitute the value from q_p_u_dict
+#        if k+1 not in state_indices:
+#           print 'quenching state '+str(k+1)+' for agent '+str(sliding_window_instance)
+#           qp_vec[k] = q_p_u_dict['q_s'][str(k+1)]
+#           qp_vec[state_dim+k] = q_p_u_dict['p_l'][str(k+1)]
+#           qp_vec[2*state_dim+k] = q_p_u_dict['p_mf'][str(k+1)]
+#
