@@ -252,8 +252,11 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
     q_s = np.array([]) # this should be an array of values
     q_s_dot = np.array([]) # this should be an array of values
     u_s = np.array([]) # this should be an array of values
+
     # get the indices that DO NOT PERTAIN to this agent
-    for ix in sliding_window_instance.state_indices:
+    # get the indices for ALL of the states in entire system
+    for ix in range(len(bb.q_p_u_dict['q_s'])):
+    #for ix in sliding_window_instance.state_indices:
         q_s_ix =  bb.q_p_u_dict['q_s'][str(ix)]
         q_s = np.hstack([q_s, q_s_ix])
 
