@@ -252,22 +252,23 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
     q_s = np.array([]) # this should be an array of values
     q_s_dot = np.array([]) # this should be an array of values
     u_s = np.array([]) # this should be an array of values
-
-    # get the indices that DO NOT PERTAIN to this agent
-    # get the indices for ALL of the states in entire system
-    for ix in range(len(bb.q_p_u_dict['q_s'])):
-    #for ix in sliding_window_instance.state_indices:
-        q_s_ix =  bb.q_p_u_dict['q_s'][str(ix)]
+    '''
+    Get entire state vector from the blackboard, and then overwrite values with local values for the states that pertain to this agent
+    '''
+    # get the indices for ALL of the states in entire system, from blackboard
+    for q_ix in range(1,len(bb.q_p_u_dict['q_s'])+1):
+        # if the index does NOT PERTAIN to this agent, then fill in the value in q_mf
+        q_s_ix =  bb.q_p_u_dict['q_s'][str(q_ix)]
         q_s = np.hstack([q_s, q_s_ix])
 
-        q_s_dot_ix =  bb.q_p_u_dict['q_s_dot'][str(ix)]
+        q_s_dot_ix =  bb.q_p_u_dict['q_s_dot'][str(q_ix)]
         q_s_dot = np.hstack([q_s_dot, q_s_dot_ix])
 
-    for ix in sliding_window_instance.control_indices:
-        u_s_ix =  bb.q_p_u_dict['u_s'][str(ix)]
+    for u_ix in range(1,len(bb.q_p_u_dict['u_s'])+1):
+        u_s_ix =  bb.q_p_u_dict['u_s'][str(u_ix)]
         u_s = np.hstack([u_s, u_s_ix])
 
-        q_s_ix =  bb.q_p_u_dict['q_s'][str(ix)]
+        q_s_ix =  bb.q_p_u_dict['q_s'][str(u_ix)]
         q_s = np.hstack([q_s, q_s_ix])
     p_l = sliding_window_instance.L_l_q_dot(q_s, q_s_dot, u_s)
     # need to prepare the q_mf, q_mf_dot, and u_mf vectors
