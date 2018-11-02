@@ -162,6 +162,7 @@ def propagate_dynamics(sliding_window_instance):
     p_ls_bar = apply_filter(p_ls, weights, weights_total)
     p_mfs_bar = apply_filter(p_mfs, weights, weights_total)
     u_bar = apply_filter(us, weights, weights_total)
+    q_
     return qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us  # return values for one entire window
 
     
