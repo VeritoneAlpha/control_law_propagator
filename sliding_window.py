@@ -224,8 +224,7 @@ def get_weights(K):
     assert len(weights_0)==len(weights_1)
     weights = weights_0+weights_1
     weights_total = sum(weights[:-1])
-    return weights, weights_total
-
+    return weights, weights_total 
 
 def apply_filter(vec, weights, weights_total):
     '''
@@ -243,12 +242,21 @@ def apply_filter(vec, weights, weights_total):
     return vec_normalized
 
 def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
-    '''q_mf, q_mf_dot, u_mf are vectors holding values for ALL states
+    q_s, q_s_dot, u_s, q_mf, q_mf_dot, u_mf = get_blackboard_values(sliding_window_instance)
+    p_l = sliding_window_instance.L_l_q_dot(q_s, q_s_dot, u_s)
+    # need to prepare the q_mf, q_mf_dot, and u_mf vectors
+    p_mf = sliding_window_instance.sync.L_mf_q_dot(q_mf, q_mf_dot, u_mf)
+    return p_mf, p_l
+
+
+def get_blackboard_values(sliding_window_instance):
+    '''helper function to get q_s, q_s_dot, u_s, q_mf, q_mf_dot, u_mf
     '''
     # need to get the values for all states and controls in order to construct q_mf, q_mf_dot, and u_mf
     # get them from the blackboard
     # construct q_mf, q_mf_dot, and u_mf using values from the blackboard
     bb = sliding_window_instance.bb
+    #q_s = np.zeros(()) # these should be an array of values of dimension sliding_window_instance.state_indices
     #q_s_dot = np.array([]) # this should be an array of values
     #u_s = np.array([]) # this should be an array of values
     q_mf = np.array([]) # this should be an array of values
@@ -263,7 +271,7 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
         # if the index does PERTAIN to this agent, then fill in q_mf with the value from qpu_vec
         if int(q_ix) in sliding_window_instance.state_indices:
             # fill in q_mf with value from qpu_vec
-            q_mf[
+            q_m[
         else:
             # fill in q_mf with value from blackboard
         q_s_ix =  bb.q_p_u_dict['q_s'][str(q_ix)]
@@ -278,8 +286,4 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
 
         q_s_ix =  bb.q_p_u_dict['q_s'][str(u_ix)]
         q_s = np.hstack([q_s, q_s_ix])
-    p_l = sliding_window_instance.L_l_q_dot(q_s, q_s_dot, u_s)
-    # need to prepare the q_mf, q_mf_dot, and u_mf vectors
-    p_mf = sliding_window_instance.sync.L_mf_q_dot(q_mf, q_mf_dot, u_mf)
-    return p_mf, p_l
-
+    return q_s, q_s_dot, u_s, q_mf, q_mf_dot, u_mf
