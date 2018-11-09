@@ -137,6 +137,11 @@ def propagate_dynamics(sliding_window_instance):
     weights, weights_total = get_weights(K)
     ts = np.linspace(t_0, T, (2*K)+1)
     qpu_vec = sliding_window_instance.qpu_vec
+
+    # retrieve values from blackboard to pass in as kwargs to the rhs functions inside of propagate_q_p and propagate_u
+    q_p_u_dict = sliding_window_instance.bb.q_p_u_dict
+    q_mf = 
+    
     for i in range(len(ts)-1):
         t_start, t_end = ts[i], ts[i+1]
         u_0 = qpu_vec[3*state_dim:]
@@ -182,12 +187,13 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
     qp_vecs = []
     qp_vec = np.concatenate([q_l_0, p_l_0, p_mf_0])  # pass in all three: q_0, p_0, u_0, but in the qp_rhs function
     steps = np.linspace(t_start, t_end, n_s+1)
+    
+    # pass in values from blackboard as kwargs to qp_rhs
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
         qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0)
 
-        # use state_indices to overwrite
-        # we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
+        # rk23 returns 2 arrays but we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
         qp_vec=qp_vec[-1]
         qp_vecs.append(qp_vec)
     return qp_vecs
@@ -251,35 +257,40 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
 
 
 def get_blackboard_values(sliding_window_instance):
-    '''helper function to get q_s, q_s_dot, u_s, q_mf, q_mf_dot, u_mf
+    '''helper function to get  q_mf, q_mf_dot, u_mf (incorrectly called q_s, q_s_dot, u_s, in the q_p_u_dict)
+    This method supplements the q_s vector inside of sliding_window_instance with the values from the blackboard so that q_mf contains values for all of the states, not just the local ones.
     '''
     # need to get the values for all states and controls in order to construct q_mf, q_mf_dot, and u_mf
     # get them from the blackboard
     # construct q_mf, q_mf_dot, and u_mf using values from the blackboard
     bb = sliding_window_instance.bb
-    #q_s = np.zeros(()) # these should be an array of values of dimension sliding_window_instance.state_indices
-    #q_s_dot = np.array([]) # this should be an array of values
-    #u_s = np.array([]) # this should be an array of values
-    q_mf = np.array([]) # this should be an array of values
-    q_mf_dot = np.array([]) # this should be an array of values
-    u_mf = np.array([]) # this should be an array of values
+    qpu_vec = sliding_window_instance.qpu_vec
+    q_mf_shape = (1,len(bb.q_p_u_dict['q_s'].items()))
+    u_mf_shape = (1,len(bb.q_p_u_dict['u_s'].items()))
+    q_mf = np.zeros(q_mf_shape)  # this should be an array of values
+    q_mf_dot = np.zeros(q_mf_shape)  # this should be an array of values
+    u_mf = np.zeros(u_mf_shape) # this should be an array of values
     '''
     Get entire state vector from the blackboard, and then overwrite values with local values for the states that pertain to this agent
     '''
     # get the indices for ALL of the states in entire system, from blackboard
-    for q_ix in bb.q_p_u_dict['q_s'].keys():
+    for q_ix, q_val in bb.q_p_u_dict['q_s'].items():
         # if this index does NOT PERTAIN to this agent, then fill in q_mf with value from the blackboard
         # if the index does PERTAIN to this agent, then fill in q_mf with the value from qpu_vec
         if int(q_ix) in sliding_window_instance.state_indices:
             # fill in q_mf with value from qpu_vec
-            q_m[
+            qpu_ix = np.where(sliding_window_instance.state_indices==int(q_ix))
+            # TODO: write an assertion to make sure qpu_ix has exactly 1 element (not 0, and not more than 1)
+            q_mf[int(q_ix)] = qpu_vec[qpu_ix[0][0]]
         else:
             # fill in q_mf with value from blackboard
-        q_s_ix =  bb.q_p_u_dict['q_s'][str(q_ix)]
-        q_s = np.hstack([q_s, q_s_ix])
+            q_mf[int(q_ix)] = q_val
 
-        q_s_dot_ix =  bb.q_p_u_dict['q_s_dot'][str(q_ix)]
-        q_s_dot = np.hstack([q_s_dot, q_s_dot_ix])
+        #q_s_ix =  bb.q_p_u_dict['q_s'][str(q_ix)]
+        #q_s = np.hstack([q_s, q_s_ix])
+
+        #q_s_dot_ix =  bb.q_p_u_dict['q_s_dot'][str(q_ix)]
+        #q_s_dot = np.hstack([q_s_dot, q_s_dot_ix])
 
     for u_ix in range(1, len(bb.q_p_u_dict['u_s'])+1):
         u_s_ix =  bb.q_p_u_dict['u_s'][str(u_ix)]
