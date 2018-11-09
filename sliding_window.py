@@ -199,7 +199,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, q_mf_d
         qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, q_mf_dot=q_mf_dot, u_mf=u_mf)
 
         # rk23 returns 2 arrays but we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
-        qp_vec=qp_vec[-1]
+        qp_vec = qp_vec[-1]
         qp_vecs.append(qp_vec)
     return qp_vecs
 
