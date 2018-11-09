@@ -151,12 +151,12 @@ def propagate_dynamics(sliding_window_instance):
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
         # Since control, u has changed, the manifold has changed and we must update p_MF and p_l using the same q and q-dot values
-        qpu_vec = compute_p_mf_p_l(qpu_vec, sliding_window_instance)
+        p_mf, p_l = compute_p_mf_p_l(qpu_vec, sliding_window_instance)
         q_s = qpu_vec[:state_dim]
         p_l = qpu_vec[state_dim:2*state_dim]
         p_mf = qpu_vec[2*state_dim:3*state_dim]
         u_s = qpu_vec[3*state_dim:]
-        sliding_window_instance.qpu_vec = np.concatenate([q_s, p_l, p_mf, u_s])
+        sliding_window_instance.qpu_vec = np.hstack([q_s, p_l, p_mf, u_s])
  
         if i == len(ts)-2:
             pass
@@ -254,7 +254,13 @@ def apply_filter(vec, weights, weights_total):
     return vec_normalized
 
 def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
-    q_s, q_s_dot, u_s, q_mf, q_mf_dot, u_mf = get_blackboard_values(sliding_window_instance)
+    state_dim = sliding_window_instance.state_dim
+    q_mf, q_mf_dot, u_mf = get_blackboard_values(sliding_window_instance)
+    # q_s, q_s_dot, u_s, q_mf, q_mf_dot, u_mf = get_blackboard_values(sliding_window_instance)
+    q_s = qpu_vec[:state_dim]
+    # p_l = qpu_vec[state_dim:2*state_dim]
+    u_s = qpu_vec[3*state_dim:]
+    q_s_dot = sliding_window_instance.q_s_dot
     p_l = sliding_window_instance.L_l_q_dot(q_s, q_s_dot, u_s)
     # need to prepare the q_mf, q_mf_dot, and u_mf vectors
     p_mf = sliding_window_instance.sync.L_mf_q_dot(q_mf, q_mf_dot, u_mf)
