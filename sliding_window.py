@@ -138,13 +138,13 @@ def propagate_dynamics(sliding_window_instance):
     ts = np.linspace(t_0, T, (2*K)+1)
     qpu_vec = sliding_window_instance.qpu_vec
 
-    # retrieve values from blackboard to pass in as kwargs to the rhs functions inside of propagate_q_p and propagate_u
-    q_p_u_dict = sliding_window_instance.bb.q_p_u_dict
-    
     for i in range(len(ts)-1):
         t_start, t_end = ts[i], ts[i+1]
         u_0 = qpu_vec[3*state_dim:]
-        qp_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance)  # assume "u" constant, and propagate q and p
+        # retrieve values from blackboard to pass in as kwargs to the rhs functions inside of propagate_q_p and propagate_u
+        q_mf, q_mf_dot, u_mf = get_blackboard_values(sliding_window_instance) 
+    
+        qp_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, q_mf_dot, u_mf)  # assume "u" constant, and propagate q and p
         # prepend initial condition for q and p for propagating u
         lhs_qp_vecs = [qpu_vec[:-1]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
         u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance)      # pass in the resulting lhs q and p values to be used for propagating the "u"
@@ -152,7 +152,12 @@ def propagate_dynamics(sliding_window_instance):
         qpu_vec = qpu_vec_i[-1] # only need the last value
         # Since control, u has changed, the manifold has changed and we must update p_MF and p_l using the same q and q-dot values
         qpu_vec = compute_p_mf_p_l(qpu_vec, sliding_window_instance)
-
+        q_s = qpu_vec[:state_dim]
+        p_l = qpu_vec[state_dim:2*state_dim]
+        p_mf = qpu_vec[2*state_dim:3*state_dim]
+        u_s = qpu_vec[3*state_dim:]
+        sliding_window_instance.qpu_vec = np.concatenate([q_s, p_l, p_mf, u_s])
+ 
         if i == len(ts)-2:
             pass
             # no need to append since weight = 0 for last value.  But qpu_vec still needs to be updated.
@@ -161,16 +166,17 @@ def propagate_dynamics(sliding_window_instance):
             p_ls.append(qpu_vec[state_dim:2*state_dim])
             p_mfs.append(qpu_vec[2*state_dim:3*state_dim])
             us.append(qpu_vec[3*state_dim:])
-                         
+                                 
     q_ls_bar = apply_filter(q_ls, weights, weights_total)
     p_ls_bar = apply_filter(p_ls, weights, weights_total)
     p_mfs_bar = apply_filter(p_mfs, weights, weights_total)
     u_bar = apply_filter(us, weights, weights_total)
-    q_
+    
+    # need to update values of the qpu_vec inside sliding_window_instance
     return qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us  # return values for one entire window
 
     
-def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
+def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, q_mf_dot, u_mf):
     '''
     Propagate q and p to end of bucket using rk23
     Output:
@@ -190,7 +196,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance):
     # pass in values from blackboard as kwargs to qp_rhs
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
-        qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0)
+        qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, q_mf_dot=q_mf_dot, u_mf=u_mf)
 
         # rk23 returns 2 arrays but we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
         qp_vec=qp_vec[-1]
