@@ -140,7 +140,6 @@ def propagate_dynamics(sliding_window_instance):
 
     # retrieve values from blackboard to pass in as kwargs to the rhs functions inside of propagate_q_p and propagate_u
     q_p_u_dict = sliding_window_instance.bb.q_p_u_dict
-    q_mf = 
     
     for i in range(len(ts)-1):
         t_start, t_end = ts[i], ts[i+1]
@@ -265,8 +264,8 @@ def get_blackboard_values(sliding_window_instance):
     # construct q_mf, q_mf_dot, and u_mf using values from the blackboard
     bb = sliding_window_instance.bb
     qpu_vec = sliding_window_instance.qpu_vec
-    q_mf_shape = (1,len(bb.q_p_u_dict['q_s'].items()))
-    u_mf_shape = (1,len(bb.q_p_u_dict['u_s'].items()))
+    q_mf_shape = len(bb.q_p_u_dict['q_s'].items())
+    u_mf_shape = len(bb.q_p_u_dict['u_s'].items())
     q_mf = np.zeros(q_mf_shape)  # this should be an array of values
     q_mf_dot = np.zeros(q_mf_shape)  # this should be an array of values
     u_mf = np.zeros(u_mf_shape) # this should be an array of values
@@ -279,23 +278,34 @@ def get_blackboard_values(sliding_window_instance):
         # if the index does PERTAIN to this agent, then fill in q_mf with the value from qpu_vec
         if int(q_ix) in sliding_window_instance.state_indices:
             # fill in q_mf with value from qpu_vec
-            qpu_ix = np.where(sliding_window_instance.state_indices==int(q_ix))
+            qpu_ix = np.where(np.array(sliding_window_instance.state_indices)==int(q_ix))
             # TODO: write an assertion to make sure qpu_ix has exactly 1 element (not 0, and not more than 1)
-            q_mf[int(q_ix)] = qpu_vec[qpu_ix[0][0]]
+            q_mf[int(q_ix)-1] = qpu_vec[qpu_ix[0][0]]
         else:
             # fill in q_mf with value from blackboard
-            q_mf[int(q_ix)] = q_val
+            q_mf[int(q_ix)-1] = q_val
 
-        #q_s_ix =  bb.q_p_u_dict['q_s'][str(q_ix)]
-        #q_s = np.hstack([q_s, q_s_ix])
+    for u_ix, u_val in bb.q_p_u_dict['u_s'].items():
+        # if this index does NOT PERTAIN to this agent, then fill in q_mf with value from the blackboard
+        # if the index does PERTAIN to this agent, then fill in q_mf with the value from qpu_vec
+        if int(u_ix) in sliding_window_instance.control_indices:
+            # fill in q_mf with value from qpu_vec
+            qpu_ix = np.where(np.array(sliding_window_instance.control_indices)==int(u_ix))
+            # TODO: write an assertion to make sure qpu_ix has exactly 1 element (not 0, and not more than 1)
+            u_mf[int(u_ix)-1] = qpu_vec[qpu_ix[0][0]]
+        else:
+            # fill in q_mf with value from blackboard
+            u_mf[int(u_ix)-1] = u_val
 
-        #q_s_dot_ix =  bb.q_p_u_dict['q_s_dot'][str(q_ix)]
-        #q_s_dot = np.hstack([q_s_dot, q_s_dot_ix])
+    for q_dot_ix, q_dot_val in bb.q_p_u_dict['q_s_dot'].items(): # if this index does NOT PERTAIN to this agent, then fill in q_mf with value from the blackboard
+        # if the index does PERTAIN to this agent, then fill in q_mf with the value from qpu_vec
+        if int(q_dot_ix) in sliding_window_instance.state_indices:
+            # fill in q_mf with value from qpu_vec
+            qpu_ix = np.where(np.array(sliding_window_instance.state_indices)==int(q_dot_ix))
+            # TODO: write an assertion to make sure qpu_ix has exactly 1 element (not 0, and not more than 1)
+            q_mf_dot[int(q_dot_ix)-1] = qpu_vec[qpu_ix[0][0]]
+        else:
+            # fill in q_mf with value from blackboard
+            q_mf_dot[int(q_dot_ix)-1] = q_dot_val
 
-    for u_ix in range(1, len(bb.q_p_u_dict['u_s'])+1):
-        u_s_ix =  bb.q_p_u_dict['u_s'][str(u_ix)]
-        u_s = np.hstack([u_s, u_s_ix])
-
-        q_s_ix =  bb.q_p_u_dict['q_s'][str(u_ix)]
-        q_s = np.hstack([q_s, q_s_ix])
-    return q_s, q_s_dot, u_s, q_mf, q_mf_dot, u_mf
+    return q_mf, q_mf_dot, u_mf
