@@ -136,7 +136,7 @@ def propagate_dynamics(sliding_window_instance):
     t_0, T, K, integrateTol, integrateMaxIter, state_dim, Gamma = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, sliding_window_instance.state_dim, sliding_window_instance.Gamma 
     weights, weights_total = get_weights(K)
     ts = np.linspace(t_0, T, (2*K)+1)
-    qpu_vec = sliding_window_instance.qpu_vec
+    qpu_vec = sliding_window_instance.qpu_vec # this qpu_vec is local
 
     for i in range(len(ts)-1):
         t_start, t_end = ts[i], ts[i+1]
@@ -155,7 +155,7 @@ def propagate_dynamics(sliding_window_instance):
         p_l = qpu_vec[state_dim:2*state_dim]
         p_mf = qpu_vec[2*state_dim:3*state_dim]
         u_s = qpu_vec[3*state_dim:]
-        sliding_window_instance.qpu_vec = np.hstack([q_s, p_l, p_mf, u_s])
+        #sliding_window_instance.qpu_vec = np.hstack([q_s, p_l, p_mf, u_s])
  
         if i == len(ts)-2:
             pass
@@ -177,8 +177,15 @@ def propagate_dynamics(sliding_window_instance):
     
 def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
     '''
-    Propagate q and p to end of bucket using rk23
-    Output:
+    Propagate q and p to end of bucket
+    Inputs:
+        qpu_vec (1D numpy array): local qpu_vec containing q_s, p_l, p_mf, u_s, concatenated in one array
+        t_start 
+        t_end
+        sliding_window_instance
+        q_mf
+        u_mf
+    Outputs:
         qp_vecs (list of 1-D numpy arrays): holds qp values for each time interval
     '''
     state_dim = sliding_window_instance.state_dim
@@ -260,7 +267,7 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
     q_s_dot = sliding_window_instance.q_s_dot
     # use the most up-to-date values to compute p_l and p_mf
     p_l = sliding_window_instance.L_l_q_dot(q_s, q_s_dot, u_s)
-    p_mf = sliding_window_instance.sync.L_mf_q_dot(q_mf, q_mf_dot, u_mf)
+    p_mf = sliding_window_instance.L_mf_q_dot(q_mf, q_mf_dot, u_mf)
     return p_mf, p_l
 
 
@@ -326,8 +333,8 @@ def construct_local_vectors(sliding_window_instance):
     '''
     bb = sliding_window_instance.bb
     qpu_vec = sliding_window_instance.qpu_vec
-    q_s_shape = len(bb.q_p_u_dict['q_s'].items())
-    u_s_shape = len(bb.q_p_u_dict['u_s'].items())
+    q_s_shape = len(sliding_window_instance.state_indices)
+    u_s_shape = len(sliding_window_instance.control_indices)
     q_s = np.zeros(q_s_shape)  # this should be an array of values
     q_s_dot = np.zeros(q_s_shape)  # this should be an array of values
     u_s = np.zeros(u_s_shape) # this should be an array of values
