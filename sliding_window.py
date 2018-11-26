@@ -190,6 +190,11 @@ def propagate_dynamics(sliding_window_instance):
     p_ls_bar = apply_filter(p_ls, weights, weights_total)
     p_mfs_bar = apply_filter(p_mfs, weights, weights_total)
     u_bar = apply_filter(us, weights, weights_total)
+
+    q_ls_dot_bar = apply_filter(q_ls_dot, weights, weights_total)
+    p_ls_dot_bar = apply_filter(p_ls_dot, weights, weights_total)
+    p_mfs_dot_bar = apply_filter(p_mfs_dot, weights, weights_total)
+    u_dot_bar = apply_filter(us_dot, weights, weights_total)
    
     # return the window in time which we will implement these values
     window = (t_0 + (T/2), t_0 + 3*(T/2))
