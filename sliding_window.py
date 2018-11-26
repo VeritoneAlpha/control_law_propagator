@@ -133,6 +133,12 @@ def propagate_dynamics(sliding_window_instance):
     p_ls=[]
     p_mfs=[]
     us=[]
+    
+    q_ls_dot=[]
+    p_ls_dot=[]
+    p_mfs_dot=[]
+    us_dot=[]
+
     t_0, T, K, integrateTol, integrateMaxIter, state_dim, Gamma = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, sliding_window_instance.state_dim, sliding_window_instance.Gamma 
     weights, weights_total = get_weights(K)
     ts = np.linspace(t_0, T, (2*K)+1)
@@ -144,9 +150,19 @@ def propagate_dynamics(sliding_window_instance):
         # retrieve values from blackboard to pass in as kwargs to the rhs functions inside of propagate_q_p and propagate_u
         q_mf, q_mf_dot, u_mf = construct_mf_vectors(sliding_window_instance) 
         qp_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)  # assume "u" constant, and propagate q and p
+
+        # also need to return derivatives
+        # use qp_vec at the end of each bucket to get the derivatives
+        qp_dot_vec = sliding_window_instance.qp_rhs(qp_vecs[-1])
+        q_s_dot = qp_dot_vec[:state_dim]
+        p_l_dot = qp_dot_vec[state_dim:2*state_dim]
+        p_mf_dot = qp_dot_vec[2*state_dim:]
+
         # prepend initial condition for q and p for propagating u
         lhs_qp_vecs = [qpu_vec[:-1]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
         u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance)      # pass in the resulting lhs q and p values to be used for propagating the "u"
+        u_dot_vec = sliding_window_instance.u_rhs(u_vecs[-1])
+
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
         # Since control, u has changed, the manifold has changed and we must update p_MF and p_l using the same q and q-dot values
@@ -155,7 +171,6 @@ def propagate_dynamics(sliding_window_instance):
         p_l = qpu_vec[state_dim:2*state_dim]
         p_mf = qpu_vec[2*state_dim:3*state_dim]
         u_s = qpu_vec[3*state_dim:]
-        #sliding_window_instance.qpu_vec = np.hstack([q_s, p_l, p_mf, u_s])
  
         if i == len(ts)-2:
             pass
@@ -165,6 +180,11 @@ def propagate_dynamics(sliding_window_instance):
             p_ls.append(qpu_vec[state_dim:2*state_dim])
             p_mfs.append(qpu_vec[2*state_dim:3*state_dim])
             us.append(qpu_vec[3*state_dim:])
+            
+            q_ls_dot.append(qp_dot_vec[:state_dim])
+            p_ls_dot.append(qp_dot_vec[state_dim:2*state_dim])
+            p_mfs_dot.append(qp_dot_vec[2*state_dim:])
+            us_dot.append(u_dot_vec)
                                  
     q_ls_bar = apply_filter(q_ls, weights, weights_total)
     p_ls_bar = apply_filter(p_ls, weights, weights_total)
@@ -208,6 +228,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
         # rk23 returns 2 arrays but we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
         qp_vec = qp_vec[-1]
         qp_vecs.append(qp_vec)
+
     return qp_vecs
 
 
@@ -228,6 +249,28 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance):
         u_vec = u_vec[-1]
     return u_vecs
 
+
+def get_weights_2(K, ts):
+    '''
+    This method also gets the weights but does not assume equally spaced values
+    Inputs:
+        K (int): number of values for half of the sliding window
+        ts (list of floating point values): list of times corresponding to each value in the triangular window
+    Outputs:
+        weights (float): weights to be used for weighting values in the window.
+        weights_total (float): sum of all of the weights for entire window
+    ''' 
+    # split the times, ts, into before K and after K
+    
+    weights_0 = [float(i)/K for i in range(1,K+1)]  
+    weights_1 = [2-(float(i)/K) for i in range(K+1,(2*K)+1)]
+    # sanity check 
+    assert len(weights_0)==len(weights_1)
+    weights = weights_0 + weights_1
+    weights_total = sum(weights[:-1])
+    # sanity check to make sure that the number of weights is equal to the number of values we will apply it to
+    assert len(ts)==len(weights)
+    return weights, weights_total 
 
 def get_weights(K):
     '''
