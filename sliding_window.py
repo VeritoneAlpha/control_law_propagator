@@ -245,7 +245,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
         qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
         qp_dot_vecs.append(qp_dot_vec[-1])
 
-     return qp_vecs, qp_dot_vecs
+    return qp_vecs, qp_dot_vecs
 
 
 def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance):
