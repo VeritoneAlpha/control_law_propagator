@@ -143,7 +143,6 @@ def propagate_dynamics(sliding_window_instance):
     weights, weights_total = get_weights(K)
     ts = np.linspace(t_0, T, (2*K)+1)
     qpu_vec = sliding_window_instance.qpu_vec # this qpu_vec is local
-
     for i in range(len(ts)-1):
         t_start, t_end = ts[i], ts[i+1]
         u_0 = qpu_vec[3*state_dim:]
@@ -243,7 +242,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
 
         # get time derivatives
         qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
-        qp_dot_vecs.append(qp_dot_vec[-1])
+        qp_dot_vecs.append(qp_dot_vec)
 
     return qp_vecs, qp_dot_vecs
 
