@@ -260,7 +260,7 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance):
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
         qp_vec = qp_vecs[i]
-        u_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.u_rhs, n_start, n_end, u_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, qp_vec = qp_vec)
+        u_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.u_rhs, n_start, n_end, u_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, qp_vec = qp_vec, u_0=u_0)
         u_vecs.append(u_vec[-1]) # one u_vec for each step, append them and you have all the u_vecs for one bucket
         u_vec = u_vec[-1]
     return u_vecs
