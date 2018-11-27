@@ -228,6 +228,8 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
     qp_vec = np.concatenate([q_l_0, p_l_0, p_mf_0])  # pass in all three: q_0, p_0, u_0, but in the qp_rhs function
     steps = np.linspace(t_start, t_end, n_s+1)
     # pass in values from blackboard as kwargs to qp_rhs
+    if sliding_window_instance.name=='Agent2':
+        import pdb; pdb.set_trace()
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
         qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
@@ -256,28 +258,6 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance):
         u_vec = u_vec[-1]
     return u_vecs
 
-
-def get_weights_2(K, ts):
-    '''
-    This method also gets the weights but does not assume equally spaced values
-    Inputs:
-        K (int): number of values for half of the sliding window
-        ts (list of floating point values): list of times corresponding to each value in the triangular window
-    Outputs:
-        weights (float): weights to be used for weighting values in the window.
-        weights_total (float): sum of all of the weights for entire window
-    ''' 
-    # split the times, ts, into before K and after K
-    
-    weights_0 = [float(i)/K for i in range(1,K+1)]  
-    weights_1 = [2-(float(i)/K) for i in range(K+1,(2*K)+1)]
-    # sanity check 
-    assert len(weights_0)==len(weights_1)
-    weights = weights_0 + weights_1
-    weights_total = sum(weights[:-1])
-    # sanity check to make sure that the number of weights is equal to the number of values we will apply it to
-    assert len(ts)==len(weights)
-    return weights, weights_total 
 
 def get_weights(K):
     '''
