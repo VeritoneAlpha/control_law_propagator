@@ -232,11 +232,14 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
         n_start, n_end = steps[i], steps[i+1]
 
         # get time derivatives
-        qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
-        q_s_dot = qp_dot_vec[:state_dim]
-        p_l_dot = qp_dot_vec[state_dim:2*state_dim]
-        p_mf_dot = qp_dot_vec[2*state_dim:]
-
+        #qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
+        #q_s_dot = qp_dot_vec[:state_dim]
+        #p_l_dot = qp_dot_vec[state_dim:2*state_dim]
+        #p_mf_dot = qp_dot_vec[2*state_dim:]
+        
+        # update q_mf with the most recent local values in q_s
+        q_s = qp_vec[:state_dim]
+        q_mf = update_q_mf(q_mf, q_s, sliding_window_instance)
         qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
         # rk23 returns 2 arrays but we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
         qp_vec = qp_vec[-1]
@@ -399,12 +402,12 @@ def construct_local_vectors(sliding_window_instance):
     return q_s, q_s_dot, u_s
 
 
-def update_mf_vectors(q_mf, q_mf_dot, u_mf, sliding_window_instance):
+def update_q_mf(q_mf, q_s, sliding_window_instance):
     '''
     helper function that updates the mean field vectors with the local state, control computed during propagation
     Output:
         q_mf (np array): q_mf, with the local values overwritten by the most recent values from q_s
-        u_mf (np array): u_mf, with the local values overwritten by the most recent values from u_s
+        (p_mf gets updated automatically, and u_s is constant, so u_mf also stays the same)
     The procedure for propagating q and p will be:
         - call ode_rk23 on qp_rhs to propagate q and p
         - update q_mf with the q_s just computed from propagation
@@ -414,5 +417,17 @@ def update_mf_vectors(q_mf, q_mf_dot, u_mf, sliding_window_instance):
         - record all of the q_s_dot, p_mf_dot, and p_l_dot in qp_dot_vecs
         return qp_vecs, and qp_dot_vecs at the very end, and then 
         inside of propagate_dynamics, instead of computing  
-    ''' 
-    
+    '''
+    for ix, q_val in enumerate(q_mf):
+        # if this index does NOT PERTAIN to this agent, then pass
+        # if the index does PERTAIN to this agent, then fill in q_mf with the value from q_s
+        q_ix = ix+1
+        if int(q_ix) in sliding_window_instance.state_indices:
+            # fill in q_mf with value from q_s
+            q_s_ix  = np.where(np.array(sliding_window_instance.state_indices)==int(q_ix))
+            # TODO: write an assertion to make sure qpu_ix has exactly 1 element (not 0, and not more than 1)
+            q_mf[ix] = q_s[q_s_ix[0][0]]
+        else:
+            pass
+
+    return q_mf
