@@ -203,7 +203,7 @@ def propagate_dynamics(sliding_window_instance):
     # need to update values of the qpu_vec inside sliding_window_instance
     return qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us, window  # return values for one entire window
 
-    
+
 def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
     '''
     Propagate q and p to end of bucket
@@ -230,8 +230,14 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
     # pass in values from blackboard as kwargs to qp_rhs
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
-        qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
 
+        # get time derivatives
+        qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
+        q_s_dot = qp_dot_vec[:state_dim]
+        p_l_dot = qp_dot_vec[state_dim:2*state_dim]
+        p_mf_dot = qp_dot_vec[2*state_dim:]
+
+        qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
         # rk23 returns 2 arrays but we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
         qp_vec = qp_vec[-1]
         qp_vecs.append(qp_vec)
@@ -358,8 +364,10 @@ def construct_mf_vectors(sliding_window_instance):
 
 
 def construct_local_vectors(sliding_window_instance):
-    '''helper function to get  q_s, q_s_dot, u_s.  cannot give us p_mf or p_l becuase p is non-physical and must be computed.
-    output:  q_s, q_s_dot, u_s for local agent
+    '''helper function to get  q_s, q_s_dot, u_s by reading data from sensors (i.e. blackboard in this case).
+     cannot give us p_mf or p_l becuase p is non-physical and must be computed.
+    output:  
+        q_s, q_s_dot, u_s for local agent
     '''
     bb = sliding_window_instance.bb
     qpu_vec = sliding_window_instance.qpu_vec
@@ -368,9 +376,6 @@ def construct_local_vectors(sliding_window_instance):
     q_s = np.zeros(q_s_shape)  # this should be an array of values
     q_s_dot = np.zeros(q_s_shape)  # this should be an array of values
     u_s = np.zeros(u_s_shape) # this should be an array of values
-    '''
-    Get entire state vector from the blackboard, and then overwrite values with local values for the states that pertain to this agent
-    '''
     # get the indices for this agent
     for q_ix, q_val in bb.q_p_u_dict['q_s'].items():
         # if this index does NOT PERTAIN to this agent, then pass 
@@ -392,3 +397,22 @@ def construct_local_vectors(sliding_window_instance):
             q_s_dot[int(q_dot_ix)-1] = qpu_vec[qpu_ix[0][0]]
 
     return q_s, q_s_dot, u_s
+
+
+def update_mf_vectors(q_mf, q_mf_dot, u_mf, sliding_window_instance):
+    '''
+    helper function that updates the mean field vectors with the local state, control computed during propagation
+    Output:
+        q_mf (np array): q_mf, with the local values overwritten by the most recent values from q_s
+        u_mf (np array): u_mf, with the local values overwritten by the most recent values from u_s
+    The procedure for propagating q and p will be:
+        - call ode_rk23 on qp_rhs to propagate q and p
+        - update q_mf with the q_s just computed from propagation
+        - (p_mf gets updated automatically, and u_s is constant, so u_mf also stays the same)
+        - call qp_rhs *directly* in order to get q_s_dot, p_mf_dot, and p_l_dot
+        - record all of the q_s, p_mf, and p_l in qp_vecs
+        - record all of the q_s_dot, p_mf_dot, and p_l_dot in qp_dot_vecs
+        return qp_vecs, and qp_dot_vecs at the very end, and then 
+        inside of propagate_dynamics, instead of computing  
+    ''' 
+    
