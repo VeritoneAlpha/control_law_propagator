@@ -149,12 +149,12 @@ def propagate_dynamics(sliding_window_instance):
         u_0 = qpu_vec[3*state_dim:]
         # retrieve values from blackboard to pass in as kwargs to the rhs functions inside of propagate_q_p and propagate_u
         q_mf, q_mf_dot, u_mf = construct_mf_vectors(sliding_window_instance) 
-        qp_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)  # assume "u" constant, and propagate q and p
+        qp_vecs, qp_dot_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)  # assume "u" constant, and propagate q and p
 
         # also need to return derivatives
         # use qp_vec at the end of each bucket to get the derivatives
         # t=0.0 doesn't matter what the value is here because derivative is not a function of time anyway (it's time invariant)
-        qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vecs[-1], state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
+        qp_dot_vec = qp_dot_vecs[-1] 
         q_s_dot = qp_dot_vec[:state_dim]
         p_l_dot = qp_dot_vec[state_dim:2*state_dim]
         p_mf_dot = qp_dot_vec[2*state_dim:]
@@ -216,6 +216,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
         u_mf
     Outputs:
         qp_vecs (list of 1-D numpy arrays): holds qp values for each time interval
+        qp_dot_vecs (list of 1-D numpy arrays): holds q_s_dot, p_mf_dot, p_l_dot  values for each time interval
     '''
     state_dim = sliding_window_instance.state_dim
     state_indices = sliding_window_instance.state_indices
@@ -226,17 +227,12 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
     u_0 = qpu_vec[3*state_dim:]
     qp_vecs = []
     qp_vec = np.concatenate([q_l_0, p_l_0, p_mf_0])  # pass in all three: q_0, p_0, u_0, but in the qp_rhs function
+    qp_dot_vecs = []
     steps = np.linspace(t_start, t_end, n_s+1)
     # pass in values from blackboard as kwargs to qp_rhs
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
-
-        # get time derivatives
-        #qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
-        #q_s_dot = qp_dot_vec[:state_dim]
-        #p_l_dot = qp_dot_vec[state_dim:2*state_dim]
-        #p_mf_dot = qp_dot_vec[2*state_dim:]
-        
+       
         # update q_mf with the most recent local values in q_s
         q_s = qp_vec[:state_dim]
         q_mf = update_q_mf(q_mf, q_s, sliding_window_instance)
@@ -245,7 +241,11 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
         qp_vec = qp_vec[-1]
         qp_vecs.append(qp_vec)
 
-    return qp_vecs
+        # get time derivatives
+        qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
+        qp_dot_vecs.append(qp_dot_vec[-1])
+
+     return qp_vecs, qp_dot_vecs
 
 
 def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance):
@@ -409,9 +409,9 @@ def update_q_mf(q_mf, q_s, sliding_window_instance):
         q_mf (np array): q_mf, with the local values overwritten by the most recent values from q_s
         (p_mf gets updated automatically, and u_s is constant, so u_mf also stays the same)
     The procedure for propagating q and p will be:
-        - call ode_rk23 on qp_rhs to propagate q and p
         - update q_mf with the q_s just computed from propagation
         - (p_mf gets updated automatically, and u_s is constant, so u_mf also stays the same)
+        - call ode_rk23 on qp_rhs to propagate q and p
         - call qp_rhs *directly* in order to get q_s_dot, p_mf_dot, and p_l_dot
         - record all of the q_s, p_mf, and p_l in qp_vecs
         - record all of the q_s_dot, p_mf_dot, and p_l_dot in qp_dot_vecs
