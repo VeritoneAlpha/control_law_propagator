@@ -160,10 +160,9 @@ def propagate_dynamics(sliding_window_instance):
 
         # prepend initial condition for q and p for propagating u
         lhs_qp_vecs = [qpu_vec[:-1]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
-        u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance)      # pass in the resulting lhs q and p values to be used for propagating the "u"
+        u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, p_l_dot, p_mf_dot, q_mf_dot, q_mf, u_mf)      # pass in the resulting lhs q and p values to be used for propagating the "u"
         # again t=0.0 doesn't matter what the value is here because derivative is not a function of time anyway (it's time invariant)
         u_dot_vec = u_dot_vecs[-1]
-        #u_dot_vec = sliding_window_instance.u_rhs(0.0, u_vecs[-1], state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, qp_vec = qp_vecs[:-1])
 
         qpu_vec_i = np.hstack([qp_vecs, u_vecs])
         qpu_vec = qpu_vec_i[-1] # only need the last value
@@ -248,7 +247,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
     return qp_vecs, qp_dot_vecs
 
 
-def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance):
+def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, p_l_dot, p_mf_dot, q_mf_dot, q_mf, u_mf):
     '''
     Propagate u based on q and p values
     u_vecs (list of 1-D numpy arrays):
@@ -260,7 +259,7 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance):
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
         qp_vec = qp_vecs[i]
-        u_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.u_rhs, n_start, n_end, u_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, qp_vec = qp_vec, u_0=u_0)
+        u_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.u_rhs, n_start, n_end, u_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, qp_vec = qp_vec, u_0=u_0, q_s_dot=q_s_dot, p_l_dot=p_l_dot, p_mf_dot=p_mf_dot, q_mf_dot=q_mf_dot, q_mf=q_mf, u_mf=u_mf)
         u_vecs.append(u_vec[-1]) # one u_vec for each step, append them and you have all the u_vecs for one bucket
         u_vec = u_vec[-1]
     return u_vecs
