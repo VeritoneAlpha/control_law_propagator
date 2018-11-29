@@ -239,11 +239,12 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
         q_s = qp_vec[:state_dim]
         q_mf = update_q_mf(q_mf, q_s, sliding_window_instance)
         qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
+        qp_vec_orig=qp_vec
+        
         # rk23 returns 2 arrays but we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
-        if len(qp_vec)>=2:
+        if len(np.shape(qp_vec_orig)) >=2:
             qp_vec = qp_vec[-1]
         qp_vecs.append(qp_vec)
-
         # get time derivatives
         qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
         qp_dot_vecs.append(qp_dot_vec)
