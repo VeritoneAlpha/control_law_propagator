@@ -136,8 +136,12 @@ def ode_rk23(F, a, b, y0, tol, maxIter, **kwargs):
     except Exception as e:
         print("ode error: " + str(e))
         failFlag = True
+        # this is so that we return something of the same size as we inputted
+        try:
+            y_len=len(y)
+        except:
+            y=y0
     
-
     return y, tTime, failFlag, iter_i
      
 
