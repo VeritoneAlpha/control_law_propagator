@@ -272,8 +272,6 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, 
             u_vec_next=u_vec
         u_vecs.append(u_vec_next) # one u_vec for each step, append them and you have all the u_vecs for one bucket
         u_vec=u_vec_next
-        #u_vecs.append(u_vec[-1]) # one u_vec for each step, append them and you have all the u_vecs for one bucket
-        #u_vec=u_vec[-1]
     return u_vecs
 
 
