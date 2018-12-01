@@ -319,97 +319,6 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
     return p_mf, p_l
 
 
-def construct_mf_vectors(sliding_window_instance):
-    '''helper function to get  q_mf, q_mf_dot, u_mf (incorrectly called q_s, q_s_dot, u_s, in the q_p_u_dict)
-    This method supplements the q_s vector inside of sliding_window_instance with the values from the blackboard so that q_mf contains values for all of the states, not just the local ones.
-    '''
-    # need to get the values for all states and controls in order to construct q_mf, q_mf_dot, and u_mf
-    # get them from the blackboard
-    # construct q_mf, q_mf_dot, and u_mf using values from the blackboard
-    bb = sliding_window_instance.bb
-    qpu_vec = sliding_window_instance.qpu_vec
-    q_mf_shape = len(bb.q_p_u_dict['q_s'].items())
-    u_mf_shape = len(bb.q_p_u_dict['u_s'].items())
-    q_mf = np.zeros(q_mf_shape)  # this should be an array of values
-    q_mf_dot = np.zeros(q_mf_shape)  # this should be an array of values
-    u_mf = np.zeros(u_mf_shape) # this should be an array of values
-    '''
-    Get entire state vector from the blackboard, and then overwrite values with local values for the states that pertain to this agent
-    '''
-    # get the indices for ALL of the states in entire system, from blackboard
-    for q_ix, q_val in bb.q_p_u_dict['q_s'].items():
-        # if this index does NOT PERTAIN to this agent, then fill in q_mf with value from the blackboard
-        # if the index does PERTAIN to this agent, then fill in q_mf with the value from qpu_vec
-        if int(q_ix) in sliding_window_instance.state_indices:
-            # fill in q_mf with value from qpu_vec
-            qpu_ix = np.where(np.array(sliding_window_instance.state_indices)==int(q_ix))
-            # TODO: write an assertion to make sure qpu_ix has exactly 1 element (not 0, and not more than 1)
-            q_mf[int(q_ix)-1] = qpu_vec[qpu_ix[0][0]]
-        else:
-            # fill in q_mf with value from blackboard
-            q_mf[int(q_ix)-1] = q_val
-
-    for u_ix, u_val in bb.q_p_u_dict['u_s'].items():
-        # if this index does NOT PERTAIN to this agent, then fill in q_mf with value from the blackboard
-        # if the index does PERTAIN to this agent, then fill in q_mf with the value from qpu_vec
-        if int(u_ix) in sliding_window_instance.control_indices:
-            # fill in q_mf with value from qpu_vec
-            qpu_ix = np.where(np.array(sliding_window_instance.control_indices)==int(u_ix))
-            # TODO: write an assertion to make sure qpu_ix has exactly 1 element (not 0, and not more than 1)
-            u_mf[int(u_ix)-1] = qpu_vec[qpu_ix[0][0]]
-        else:
-            # fill in q_mf with value from blackboard
-            u_mf[int(u_ix)-1] = u_val
-
-    for q_dot_ix, q_dot_val in bb.q_p_u_dict['q_s_dot'].items(): # if this index does NOT PERTAIN to this agent, then fill in q_mf with value from the blackboard
-        # if the index does PERTAIN to this agent, then fill in q_mf with the value from qpu_vec
-        if int(q_dot_ix) in sliding_window_instance.state_indices:
-            # fill in q_mf with value from qpu_vec
-            qpu_ix = np.where(np.array(sliding_window_instance.state_indices)==int(q_dot_ix))
-            # TODO: write an assertion to make sure qpu_ix has exactly 1 element (not 0, and not more than 1)
-            q_mf_dot[int(q_dot_ix)-1] = qpu_vec[qpu_ix[0][0]]
-        else:
-            # fill in q_mf with value from blackboard
-            q_mf_dot[int(q_dot_ix)-1] = q_dot_val
-
-    return q_mf, q_mf_dot, u_mf
-
-
-def construct_local_vectors(sliding_window_instance):
-    '''helper function to get  q_s, q_s_dot, u_s by reading data from sensors (i.e. blackboard in this case).
-     cannot give us p_mf or p_l becuase p is non-physical and must be computed.
-    output:  
-        q_s, q_s_dot, u_s for local agent
-    '''
-    bb = sliding_window_instance.bb
-    qpu_vec = sliding_window_instance.qpu_vec
-    q_s_shape = len(sliding_window_instance.state_indices)
-    u_s_shape = len(sliding_window_instance.control_indices)
-    q_s = np.zeros(q_s_shape)  # this should be an array of values
-    q_s_dot = np.zeros(q_s_shape)  # this should be an array of values
-    u_s = np.zeros(u_s_shape) # this should be an array of values
-    # get the indices for this agent
-    for q_ix, q_val in bb.q_p_u_dict['q_s'].items():
-        # if this index does NOT PERTAIN to this agent, then pass 
-        # if the index does PERTAIN to this agent, then fill in with value from blackboard
-        if int(q_ix) in sliding_window_instance.state_indices:
-            # fill in with value from blackboard
-            qpu_ix = np.where(np.array(sliding_window_instance.state_indices)==int(q_ix))
-            # TODO: write an assertion to make sure qpu_ix has exactly 1 element (not 0, and not more than 1)
-            q_s[int(q_ix)-1] = qpu_vec[qpu_ix[0][0]]
-
-    for u_ix, u_val in bb.q_p_u_dict['u_s'].items():
-        if int(u_ix) in sliding_window_instance.control_indices:
-            qpu_ix = np.where(np.array(sliding_window_instance.control_indices)==int(u_ix))
-            u_s[int(u_ix)-1] = qpu_vec[qpu_ix[0][0]]
-
-    for q_dot_ix, q_dot_val in bb.q_p_u_dict['q_s_dot'].items(): # if this index does NOT PERTAIN to this agent, then fill in q_mf with value from the blackboard
-        if int(q_dot_ix) in sliding_window_instance.state_indices:
-            qpu_ix = np.where(np.array(sliding_window_instance.state_indices)==int(q_dot_ix))
-            q_s_dot[int(q_dot_ix)-1] = qpu_vec[qpu_ix[0][0]]
-
-    return q_s, q_s_dot, u_s
-
 
 def update_q_mf(q_mf, q_s, sliding_window_instance):
     '''
@@ -440,3 +349,85 @@ def update_q_mf(q_mf, q_s, sliding_window_instance):
             pass
 
     return q_mf
+
+
+def sliding_window(sliding_window_instance):
+    ''' 
+    This method runs the propagation for a single agent.  Corresponding to the flow chart it runs:
+        - Read from blackboard to get the following observation measured at time t_0, and onwards
+        - construct quenched mean field for Hamiltonian agent i
+        - Setup initial conditions for L_MF and p_MF
+        - Construct agent synchronized Hamiltonian and partial derivatives
+    
+    Inputs:
+    The only input is sliding_window_instance, but we use the following attributes of the sliding_window_instance:
+        t_0 (int): Initial time to start propagating dynamics
+        T (int): End time of propagating dynamics
+        q_0 (np.array): initial values of state vector
+        p_0 (np.array): initial values of costate vector
+        u_0 (np.array): initial values of control vector
+        state_dim (int): number of states
+        Gamma (float): algorithmic parameter for Riemann descent algorithm
+        t_terminal (int): time marking termination of control law propagator algorithm
+    Outputs:
+        q_bars, p_bars, u_bars (list of np.arrays): implemented state/costate/control values for entire propagator.
+    '''
+    
+    t_0, T, K, state_dim,t_terminal = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K,  sliding_window_instance.state_dim, sliding_window_instance.t_terminal
+    q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, windows = [], [], [], [], []
+    t = t_0 # wall clock time
+    
+    # Read from blackboard to get the following observations measured at time t_0
+    q_s_0, q_s_dot_0, u_s_0 = construct_local_vectors(sliding_window_instance)
+    q_mf, q_mf_dot, u_mf = construct_mf_vectors(sliding_window_instance)
+
+    # now pick out the individual states that we need to make q_s and q_s_dot
+    qpu_vec = sliding_window_instance.qpu_vec
+    state_dim = sliding_window_instance.state_dim
+    # a note on q_s_dot - normally I understand that this would come from the sensors, ...
+    # ...but for now get it from q_mf_dot from the blackboard, and just select if from the states that pertain to this agent
+    # construct quenched mean field for Hamiltonian agent i
+    # this happens inside of the class Synchronize method
+    
+    # If control is physical, then we should use the physical value here for initial condition
+    # IF not, then we can use the average u, averaged over the previous window.
+    # For now, use the value from the blackboard
+    q_l_D_dot_0 = q_s_dot_0
+    q_l_D_0 = q_s_0
+
+    # set initial conditions using values from blackboard retrieved above
+    # set initial conditions for local Hamiltonian of agent i
+    p_l_0 = sliding_window_instance.L_l_q_dot(q_s_0, q_s_dot_0, u_s_0) # compute using Dirac compatibility
+    p_l_D_0 = sliding_window_instance.L_l_D_q_Dot(q_l_D_0, q_l_D_dot_0) # compute using Dirac compatibility
+    H_l_D_0 = sliding_window_instance.H_l_D(q_l_D_0, p_l_D_0)
+    
+    # setup initial condition for p_mf
+    p_mf_0 = sliding_window_instance.L_mf_q_dot(q_mf, q_mf_dot, u_mf)
+    
+    # now construct qpu_vec 
+    sliding_window_instance.qpu_vec = np.concatenate([q_s_0, p_l_0, p_mf_0, u_s_0]) # fill in with blackboard values for q and u, but for p, must be computed
+    # Construct local Hamiltonian of agent i
+    lambdas = sliding_window_instance.compute_lambdas(q_s_0, p_l_0, u_s_0)
+
+    while t < sliding_window_instance.t_terminal:
+        
+        # for the times, propagate_dynamics needs: t_0, T, and K.  T and K can come from the sliding_window_instance
+        #...t_0 will be passed in.  t_0 is the start of the window.
+
+        # this propagates a single window
+        # inside of propagate dynamics
+        qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us, window = propagate_dynamics(sliding_window_instance)
+        # qs, ps, and us will go to Mean Field somehow
+        
+        q_ls_bars.append(q_ls_bar)
+        p_ls_bars.append(p_ls_bar)
+        p_mfs_bars.append(p_mfs_bar)
+        u_bars.append(u_bar)
+        windows.append(window)
+
+        t+=1
+    # update blackboard
+    bb.update_q_p_u_dict(sliding_window_instance)
+    
+    return q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, windows
+
