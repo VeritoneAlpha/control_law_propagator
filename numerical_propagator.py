@@ -10,6 +10,8 @@ import abc
 import scipy as sp
 import ode
 
+from blackboard import *
+
 
 class SlidingWindow(object):
     '''
