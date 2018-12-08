@@ -4,7 +4,7 @@
 import numpy as np
 import scipy as sp
 import ode
-from sliding_window import *
+from numerical_propagator import *
 from  blackboard import *
 
 
