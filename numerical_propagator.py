@@ -205,7 +205,7 @@ def propagate_dynamics(sliding_window_instance):
     # return the window in time which we will implement these values
     window = (t_0 + (T/2), t_0 + 3*(T/2))
     # need to update values of the qpu_vec inside sliding_window_instance
-    return qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us, window  # return values for one entire window
+    return qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us, q_ls_dot_bar, p_ls_dot_bar, p_mfs_dot_bar, p_mfs_dot_bar, u_dot_bar, window  # return values for one entire window
 
 
 def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
@@ -412,13 +412,13 @@ def sliding_window(sliding_window_instance):
     lambdas = sliding_window_instance.compute_lambdas(q_s_0, p_l_0, u_s_0)
 
     while t < sliding_window_instance.t_terminal:
-        
+        print t  
         # for the times, propagate_dynamics needs: t_0, T, and K.  T and K can come from the sliding_window_instance
         #...t_0 will be passed in.  t_0 is the start of the window.
 
         # this propagates a single window
         # inside of propagate dynamics
-        qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us, window = propagate_dynamics(sliding_window_instance)
+        qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us, q_ls_dot_bar, p_ls_dot_bar, p_mfs_dot_bar, p_mfs_dot_bar, u_dot_bar, window  = propagate_dynamics(sliding_window_instance)
         # qs, ps, and us will go to Mean Field somehow
         
         q_ls_bars.append(q_ls_bar)

@@ -26,7 +26,7 @@ class Blackboard:
         Inputs:
             agent (instance of class Agent): this is the agent whose values we are updating
         Outputs:
-            No outputs.  This method just updates the attributes of the blackboard,
+            None.  This method just updates the attributes of the blackboard,
             just update the dictionary, agent_q_p_u_dict.
         '''
         # Determine which states pertain to this agent and replace the old values with new
