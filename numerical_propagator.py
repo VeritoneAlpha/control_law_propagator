@@ -429,6 +429,7 @@ def sliding_window(sliding_window_instance):
 
         t+=1
     # update blackboard
+    bb=sliding_window_instance.bb
     bb.update_q_p_u_dict(sliding_window_instance)
     
     return q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, windows
