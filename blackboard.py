@@ -11,14 +11,21 @@ class Blackboard:
     def __init__(self):
         '''
         values: list of integers state_indices state_indices
-        q_p_u_dict is a dictionary which maps 'q', 'p', 'u', to a dictionary of index-value pairs: local values for q, p, and u for this agent.  
-                        blackboard holds all of the most recent local values, e.g.
-                        {'q_s': {'1':3, '2':0}, 'p_mf': {'1':3, '2': 2}, 'u': {'1': 0}}
-                        It doesn't care which agent updated them most recently.  It only needs to know which values to update.
-        q_p_u_dict initially will be filled.
+        q_p_u_dict is a dictionary which:
+            -  maps 'q', 'p', 'u', to a dictionary of index-value pairs: local values for q, p, and u for this agent.  
+            - blackboard holds all of the most recent local values, e.g.
+            - {'q_s': {'1':3, '2':0}, 'p_mf': {'1':3, '2': 2}, 'u': {'1': 0}}
+            - It doesn't care which agent updated them most recently.  It only needs to know which values to update.
+        bar_dict is a dictionary which:
+            - keeps track of the implemented values for each agent.  These are the "bar" values from the numerical propagation.
+            - There is one set of bar values for each window, and these values in the dictionary get overwritten each time the numerical propagation is run.
+            - The dictionary maps objects of class agent, to a sub-dictionary:
+                - keys: 'q_s_bar', 'q_s_dot_bar', etc.
+                - values: values for the respective "bar" values 
         '''
         ## TODO:  _s should really be called _mf because it contains all of the states/controls.
         self.q_p_u_dict = {'q_s':{}, 'p_l':{}, 'p_mf':{}, 'u_s':{}, 'q_s_dot':{}}
+        self.bar_dict = {}
         self.agents=[]
         
     def update_q_p_u_dict(self, agent):
