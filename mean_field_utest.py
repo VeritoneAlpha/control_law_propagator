@@ -6,161 +6,26 @@ import unittest
 import numpy as np
 
 class FunctionalityTestCase(unittest.TestCase):
-    def setUp(self):         
+    def setUp(self):
+        # define a sliding_window object
         pass
     
-    def test_demo1_chatter_init(self):
+    def test_propagate_q_p(self):
         '''
-        test demo1_chatter_init, i.e. initialize demo-1 model for edge controller chattering
+        unittest for propagate_q_p
         '''
-        ### demo-1 circuit parameters
-        demo1Par = {'inductanceL':np.float(20),'capacitorC':np.float(60),'independVolVu':np.float(48),
-                    'dependForceParV0':np.float(47),'dependForceParK':np.float(0.5)}
-        R_s_max = 10000.0  # Ohms
-        R_s_min = 0.1     # Ohms    
-        tCdiBkt = 1.5 # Shen - should it be tCdiBkt?    
-        q_B_max = 100000.0 
-        q_B_min = 1.0    
-        demo1Par['R_s_max'] = R_s_max
-        demo1Par['R_s_min'] = R_s_min
-        demo1Par['delta'] = tCdiBkt
-        demo1Par['q_B_max'] = q_B_max
-        demo1Par['q_B_min'] = q_B_min
+        
+        ### define inputs
+        qpu_vec = np.array([])
+        t_start  = 0.1     # Ohms    
+        t_end = 1.5 # Shen - should it be tCdiBkt?    
+        sliding_window_instance = 100000.0 
+        q_mf  = 1.0    
+        u_mf
    
-        ### demo-1 initial condition 
-        #demo1Init = {'Time':2.0,'qBDependForce':np.float(116.3393),'vCCapacitor':np.float(40.01),
-        #                 'iInductor':np.float(4.85),'control':np.float(0.05)}
-        
-        demo1EdgeChtInit = {'Time':10.0,'iInductor':-11.8608, 'vBDependForce': 14.7924,'qBDependForce':119.8246,
-                                        'powerRateDependForce': 115.2518, 'vCCapacitor':14.0372, 'control':0.01}
-    
-        
-        ### define dimensions of the state, control and observation for demo-1 chattering model
-        stateDim = int(5)
-        controlDim  = int(1)   
-    
-        ### chattering weight matics setup
-        ###### chtTrackParQ   :  chattering tracking weight matrix for state vector (i.e. delta_x)
-        chtTrackParQ = np.diag(np.array([1e-1,1e-1,1e-1,0.5,1e-1]))
-        ###### chtCrossParS   :  chattering cross term weight matrix for state and control vectors
-        chtCrossParS = np.array([[ 1e-5],[ 1e-5],[ 1e-5],[ 1e-5],[ 1e-5]])
-        ###### chtLinearParRu :  chattering linear term weight matrix for control vector
-        chtLinearParRu = np.array([0.0])
-        
-        ### define number of sub-interval within chattering time interval
-        #chtSteps = int(3)
-        #chtTDelta = 0.5
-        ### provides the values of control vector at each level
-        #chtULevels = int(2)
-        #chtUVectorOfLevel = np.zeros([chtULevels,controlDim])
-        #chtUVectorOfLevel[0,0] = 1e-5 #1e-4
-        #chtUVectorOfLevel[1,0] = 1.0 #1e-1
-        
-        chtSteps = int(3)
-        chtTDelta = tCdiBkt/chtSteps
-    
-        incStateDyn, incChatter = dm1cht.demo1_chatter_init(demo1Par, demo1EdgeChtInit, stateDim, 
-                                                     controlDim, chtTrackParQ,
-                                                 chtCrossParS, chtLinearParRu,
-                                                 chtSteps, chtTDelta)
- 
-        
-        
-        
-        # compare with expected results 
-        expIncStateDynParA = np.array([[  0.00000000e+00,   5.00000000e-02,   0.00000000e+00,\
-                                          0.00000000e+00,  -5.00000000e-02],\
-                                       [ -4.17276586e-03,   0.00000000e+00,  -4.13039904e-04,\
-                                          0.00000000e+00,   0.00000000e+00],\
-                                       [ -1.00000000e+00,   0.00000000e+00,   0.00000000e+00,\
-                                          0.00000000e+00,   0.00000000e+00],\
-                                       [ -3.05829031e-02,   1.94994449e-02,  -1.32213043e-03,\
-                                          0.00000000e+00,  -4.60853264e-07],\
-                                       [  1.66666667e-02,   0.00000000e+00,   0.00000000e+00,\
-                                          0.00000000e+00,  -1.66666667e-04]])
-    
-        expIncStateDynParB = np.array([[ 0.        ],[ 0.        ],[ 0.        ],[-0.41865944],[ 0.56604667]])
-        expIncStateDynParF = np.array([  0.03776   ,   0.04949234,  11.8608    ,   8.62160712,  -0.19201953])
-        expStateAtStartT = np.array([ -11.8608,   14.7924,  119.8246,  115.2518,   14.0372])
-                
-        self.assertTrue(np.amax(abs(incStateDyn['parA']-expIncStateDynParA ))<1e-6, msg=None)
-        self.assertTrue(np.amax(abs(incStateDyn['parB']-expIncStateDynParB ))<1e-6, msg=None)
-        self.assertTrue(max(abs(incStateDyn['parF']-expIncStateDynParF))<1e-6, msg=None)
-        self.assertTrue(max(abs(incChatter['stateAtStartT']-expStateAtStartT))<1e-6, msg=None)
-
     def test_demo1_chatter_optimizer(self):
         '''
-        test first time of running demo1_chatter_optimizer 
-        '''
-        # initialize demo-1 model
-        ### demo-1 circuit parameters
-        demo1Par = {'inductanceL':np.float(20),'capacitorC':np.float(60),'independVolVu':np.float(48),
-                    'dependForceParV0':np.float(47),'dependForceParK':np.float(0.5)}
-        R_s_max = 10000.0  # Ohms
-        R_s_min = 10.0     # Ohms    
-        tCdiBkt = 1.0 # Shen - should it be tCdiBkt?    
-        q_B_max = 10000.0 
-        q_B_min = 10.0    
-        demo1Par['R_s_max'] = R_s_max
-        demo1Par['R_s_min'] = R_s_min
-        demo1Par['delta'] = tCdiBkt
-        demo1Par['q_B_max'] = q_B_max
-        demo1Par['q_B_min'] = q_B_min
-           
-        ### demo-1 initial condition 
-        #demo1Init = {'Time':2.0,'qBDependForce':np.float(116.3393),'vCCapacitor':np.float(40.01),
-        #                 'iInductor':np.float(4.85),'control':np.float(0.05)}
-        
-        demo1EdgeChtInit = {'Time':10.0,'iInductor':-11.8608, 'vBDependForce': 14.7924,'qBDependForce':119.8246,
-                                        'powerRateDependForce': 115.2518, 'vCCapacitor':14.0372, 'control':0.01}
-    
-        
-        ### define dimensions of the state, control and observation for demo-1 chattering model
-        stateDim = int(5)
-        controlDim  = int(1)   
-    
-        ### chattering weight matics setup
-        ###### chtTrackParQ   :  chattering tracking weight matrix for state vector (i.e. delta_x)
-        chtTrackParQ = np.diag(np.array([1e-1,1e-1,1e-1,0.5,1e-1]))
-        ###### chtCrossParS   :  chattering cross term weight matrix for state and control vectors
-        chtCrossParS = np.array([[ 1e-5],[ 1e-5],[ 1e-5],[ 1e-5],[ 1e-5]])
-        ###### chtLinearParRu :  chattering linear term weight matrix for control vector
-        chtLinearParRu = np.array([0.0])
-        
-        ### define number of sub-interval within chattering time interval
-        chtSteps = int(3)
-        chtTDelta = tCdiBkt/chtSteps
-        ### provides the values of control vector at each level
-        #chtULevels = int(2)
-        #chtUVectorOfLevel = np.zeros([chtULevels,controlDim])
-        #chtUVectorOfLevel[0,0] = 1e-5
-        #chtUVectorOfLevel[1,0] = 1e-1
-        
-    
-        incStateDyn, incChatter = dm1cht.demo1_chatter_init(demo1Par, demo1EdgeChtInit, stateDim, 
-                                                     controlDim, chtTrackParQ,
-                                                     chtCrossParS, chtLinearParRu, chtSteps, chtTDelta)
-        ### setup tracking signals of state vector 
-        ###     over future time interval [incChatter['tStart'], incChatter['tEnd']] with stepsize = incChatter['tDelta']
-        timeIndex = np.array([10.0+chtTDelta ,10.0+2.0*chtTDelta ,10.0+3.0*chtTDelta ])
-        zData = np.array([[5.5, 49.84, 295.0, 27.41, 39.0],
-                          [5.2, 49.83, 285.0, 25.91, 41.0],
-                          [4.9, 49.81, 275.0, 24.41, 42.0]])
-        signalTrack = {'timeIndex': timeIndex, 'zTrack': zData}    
-    
-        # solve optimal control for chattering model
-        chtOptimalControl, chtOptimalAlpha = dm1cht.chatter_optimizer(incStateDyn, incChatter, signalTrack, demo1Par)
-               
-        
-        # compare with expected results            
-        expOptimalControl = np.array([[100.0],[10.0],[10.0],[10.0]])
-        expOptimalAlpha = np.array([[  0.0,   1.00000000e+00],
-                                    [  0.0,   1.00000000e+00],
-                                    [  0.0,   1.00000000e+00]])
-        self.assertTrue(max(abs(chtOptimalControl.index-np.array([10.0, 10.33333333,  10.66666667,  11.0])))<1e-6, msg=None)
-        self.assertTrue(np.amax(abs(chtOptimalControl.values-expOptimalControl))<1e-6, msg=None)       
-        self.assertTrue(max(abs(chtOptimalAlpha.index-np.array([10.33333333,  10.66666667,  11.])))<1e-6, msg=None)
-        self.assertTrue(np.amax(abs(chtOptimalAlpha.values-expOptimalAlpha))<1e-6, msg=None)       
+   self.assertTrue(np.amax(abs(chtOptimalAlpha.values-expOptimalAlpha))<1e-6, msg=None)       
 
     def test_demo1_edgecht_integ_exe(self):
         '''
