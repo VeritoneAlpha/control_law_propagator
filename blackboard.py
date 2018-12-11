@@ -27,7 +27,13 @@ class Blackboard:
         self.q_p_u_dict = {'q_s':{}, 'p_l':{}, 'p_mf':{}, 'u_s':{}, 'q_s_dot':{}}
         self.bar_dict = {}
         self.agents=[]
-        
+       
+    def add_agent(self, agent):
+        if agent not in self.agents:
+            self.agents.append(agent)
+        if agent not in self.bar_dict.keys():
+            self.bar_dict[agent]={}
+ 
     def update_q_p_u_dict(self, agent):
         '''This method should be called after propagation of each agent
         Inputs:
@@ -45,13 +51,29 @@ class Blackboard:
             
         for control_ix in agent.control_indices:
             self.q_p_u_dict['u_s'][str(control_ix)] = agent.qpu_vec[3*agent.state_dim:][control_ix-1]
-        
        
         # add agent if not already added 
         if agent not in self.agents:
             self.agents.append(agent)
 
-
+    def save_bar_values(self, sliding_window_instance, q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, q_ls_dot_bars, p_ls_dot_bars, p_mfs_dot_bars, u_dot_bars):
+        '''This method saves the bar values from this agent.
+        '''
+        # add agent if not already added
+        self.add_agent(sliding_window_instance)
+        
+        self.bar_dict[sliding_window_instance]={} # overwritten each time this method is called
+        self.bar_dict[sliding_window_instance]['q_ls_bars']=q_ls_bars
+        self.bar_dict[sliding_window_instance]['q_ls_dot_bars']=q_ls_dot_bars
+        #self.bar_dict[sliding_window_instance]['p_s_bars']=p_s_bars # don't have yet
+        #self.bar_dict[sliding_window_instance]['p_s_dot_bar']=p_s_bars # don't have yet
+        self.bar_dict[sliding_window_instance]['u_bars']=u_bars
+        self.bar_dict[sliding_window_instance]['u_dot_bars']=u_dot_bars
+        self.bar_dict[sliding_window_instance]['p_l_bars']=p_ls_bars 
+        self.bar_dict[sliding_window_instance]['p_l_dot_bars']=p_ls_bars 
+        self.bar_dict[sliding_window_instance]['p_mfs_bars']=p_mfs_bars
+        # TO-DO: send values to simulink interface by storing in database 
+        
 def construct_mf_vectors(sliding_window_instance):
     '''helper function to get  q_mf, q_mf_dot, u_mf (incorrectly called q_s, q_s_dot, u_s, in the q_p_u_dict)
     This method supplements the q_s vector inside of sliding_window_instance with the values from the blackboard so that q_mf contains values for all of the states, not just the local ones.

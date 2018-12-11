@@ -1,35 +1,12 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jun  7 13:56:59 2018
-
-@author: home
-"""
-
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 24 15:47:51 2018
-
-unit tests for testing demo1_edgectrl_chatter.py, 
-i.e. apply edge controller chattering for demo-1
-"""
-
 import sys
 sys.path.insert(0, './cdi-edge-controller')
-import demo1_edgectrl_chatter as dm1cht
-#import lqtracker as lqt
+import numerical_propagator as prp
 
 import unittest   
 import numpy as np
-#import pandas as pd
-
-#import matplotlib.pyplot as plt
-#from mpl_toolkits.mplot3d import Axes3D
 
 class FunctionalityTestCase(unittest.TestCase):
     def setUp(self):         
-        #self.myfun = dynamicFunSimpleVector
         pass
     
     def test_demo1_chatter_init(self):

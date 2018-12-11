@@ -377,6 +377,7 @@ def sliding_window(sliding_window_instance):
     
     t_0, T, K, state_dim,t_terminal = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K,  sliding_window_instance.state_dim, sliding_window_instance.t_terminal
     q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, windows = [], [], [], [], []
+    q_ls_dot_bars, p_ls_dot_bars, p_mfs_dot_bars, p_mfs_dot_bar, u_dot_bars =[], [], [], [], []
     t = t_0 # wall clock time
     
     # Read from blackboard to get the following observations measured at time t_0
@@ -412,25 +413,30 @@ def sliding_window(sliding_window_instance):
     lambdas = sliding_window_instance.compute_lambdas(q_s_0, p_l_0, u_s_0)
 
     while t < sliding_window_instance.t_terminal:
-        print t  
+        print t
         # for the times, propagate_dynamics needs: t_0, T, and K.  T and K can come from the sliding_window_instance
         #...t_0 will be passed in.  t_0 is the start of the window.
 
         # this propagates a single window
         # inside of propagate dynamics
-        qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us, q_ls_dot_bar, p_ls_dot_bar, p_mfs_dot_bar, p_mfs_dot_bar, u_dot_bar, window  = propagate_dynamics(sliding_window_instance)
+        qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us, q_ls_dot_bar, p_ls_dot_bar, p_mfs_dot_bar, p_mfs_dot_bar, u_dot_bar, window = propagate_dynamics(sliding_window_instance)
         # qs, ps, and us will go to Mean Field somehow
         
         q_ls_bars.append(q_ls_bar)
         p_ls_bars.append(p_ls_bar)
         p_mfs_bars.append(p_mfs_bar)
         u_bars.append(u_bar)
+        q_ls_dot_bars.append(q_ls_dot_bar)
+        p_ls_dot_bars.append(p_ls_dot_bar)
+        p_mfs_dot_bars.append(p_mfs_dot_bar)
+        u_dot_bars.append(u_dot_bar)
         windows.append(window)
 
         t+=1
     # update blackboard
     bb=sliding_window_instance.bb
     bb.update_q_p_u_dict(sliding_window_instance)
+    bb.save_bar_values(sliding_window_instance, q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, q_ls_dot_bars, p_ls_dot_bars, p_mfs_dot_bars, u_dot_bars) # these eventually need to go to simulink and MATLAB interface
     
     return q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, windows
 
