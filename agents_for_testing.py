@@ -57,6 +57,12 @@ class Agent1:
         self.n_s = 10 # number of steps inside of each bucket
 
         self.validate_dimensions()
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
         
     def compute_gamma(self):
         # if only one agent, then gamma = 1
@@ -347,6 +353,12 @@ class Agent2:
         self.n_s = 10
 
         self.validate_dimensions()
+
+    def __repr__(self):
+        return self.name
+
+    def __str__(self):
+        return self.name
 
     def validate_dimensions(self):
         # TODO: move to parent class "SlidingWindow"

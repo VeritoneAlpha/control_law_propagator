@@ -165,6 +165,8 @@ def propagate_dynamics(sliding_window_instance):
 
         # prepend initial condition for q and p for propagating u
         lhs_qp_vecs = [qpu_vec[:-1]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
+        #print u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, p_l_dot, p_mf_dot, q_mf_dot, q_mf, u_mf, H_l_D
+        #import pdb; pdb.set_trace()
         u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, p_l_dot, p_mf_dot, q_mf_dot, q_mf, u_mf, H_l_D)      # pass in the resulting lhs q and p values to be used for propagating the "u"
         # again t=0.0 doesn't matter what the value is here because derivative is not a function of time anyway (it's time invariant)
         u_dot_vec = u_vecs[-1]

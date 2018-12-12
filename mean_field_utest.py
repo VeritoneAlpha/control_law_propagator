@@ -28,14 +28,39 @@ class FunctionalityTestCase(unittest.TestCase):
         '''
         unittest for propagate_q_p
         '''
+        self.Agent2.n_s = 2
         ### define inputs
-        qpu_vec = self.Agent2.qpu_vec
-        #t_start = 
-        #t_end = 
+        qpu_vec = np.array([0, 2, 0, 3, 0, 1, 0])
+        t_start = 0.0
+        t_end = 0.25
         sliding_window_instance = self.Agent2
-        q_mf = construct_mf_vectors(self.Agent2)
-        result_propagate_q_p = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)
-   
+        q_mf, u_mf = [0.0, 2.0], [0.0]
+        result_qp_vecs, result_qp_dot_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)
+        
+        expected_result_qp_vecs =[np.array([0.        , 2.13314708, 0.        , 2.74185292, 0.        ,
+       1.13314708]), np.array([0.        , 2.28402231, 0.        , 2.46597769, 0.        ,
+       1.28402231])] 
+        expected_result_qp_dot_vecs =[np.array([ 0.        ,  1.13314708, -0.        , -2.13314708,  0.        ,
+        1.13314708]), np.array([ 0.        ,  1.28402231, -0.        , -2.28402231,  0.        ,
+        1.28402231])] 
+
+        self.assertTrue(np.amax(abs(result_qp_vecs[0] - expected_result_qp_vecs[0]))<1e-6, msg=None) 
+        self.assertTrue(np.amax(abs(result_qp_vecs[1] - expected_result_qp_vecs[1]))<1e-6, msg=None) 
+        self.assertTrue(np.amax(abs(result_qp_dot_vecs[0] - expected_result_qp_dot_vecs[0]))<1e-6, msg=None) 
+        self.assertTrue(np.amax(abs(result_qp_dot_vecs[1] - expected_result_qp_dot_vecs[1]))<1e-6, msg=None) 
+
+    def test_propagate_u(self):
+        '''
+        unittest for propagate_u
+        '''
+        ### define inputs
+        qpu_vec = np.array([0, 2, 0, 3, 0, 1, 0])
+        t_start = 0.0
+        t_end = 0.25
+        sliding_window_instance = self.Agent2
+        q_mf, u_mf = [0.0, 2.0], [0.0]
+        result_qp_vecs, result_qp_dot_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)
+    
 
 def suite_test():
     """
@@ -44,10 +69,6 @@ def suite_test():
     unittest.main(verbosity=2)
     suite = unittest.TestSuite()
     suite.addTest(FunctionalityTestCase('test_propagate_q_p'))
-   # suite.addTest(FunctionalityTestCase('test_demo1_chatter_optimizer'))
-   # suite.addTest(FunctionalityTestCase('test_demo1_edgecht_integ_init'))
-   # suite.addTest(FunctionalityTestCase('test_demo1_edgecht_integ_exe'))
-
     return suite
 
 
