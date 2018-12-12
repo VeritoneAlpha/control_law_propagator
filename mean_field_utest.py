@@ -53,14 +53,27 @@ class FunctionalityTestCase(unittest.TestCase):
         '''
         unittest for propagate_u
         '''
+        self.Agent2.n_s = 2
         ### define inputs
         qpu_vec = np.array([0, 2, 0, 3, 0, 1, 0])
+        u_0 = np.array([0])
+        lhs_qp_vecs=[np.array([0, 2, 0, 3, 0, 1]), np.array([0., 2.13314708, 0., 2.74185292, 0., 1.13314708])] 
         t_start = 0.0
         t_end = 0.25
         sliding_window_instance = self.Agent2
-        q_mf, u_mf = [0.0, 2.0], [0.0]
-        result_qp_vecs, result_qp_dot_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)
-    
+        q_s_dot = np.array([0., 1.28402231]) 
+        p_l_dot = np.array([-0., -2.28402231])
+        p_mf_dot = np.array([0., 1.28402231])
+        q_mf_dot = np.array([0., 2.])
+        q_mf = np.array([0., 2.13314708]) 
+        u_mf = np.array([0.]) 
+        H_l_D = 6
+
+        result_u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, p_l_dot, p_mf_dot, q_mf_dot, q_mf, u_mf, H_l_D)
+        expected_result_u_vecs = [np.array([3.42376056]), np.array([6.84752111])]
+        self.assertTrue(np.amax(abs(result_u_vecs[0] - expected_result_u_vecs[0]))<1e-6, msg=None) 
+        self.assertTrue(np.amax(abs(result_u_vecs[1] - expected_result_u_vecs[1]))<1e-6, msg=None) 
+           
 
 def suite_test():
     """

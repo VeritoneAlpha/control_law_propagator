@@ -183,6 +183,7 @@ class Agent1:
         u_mf = kwargs['u_mf']
         qp_vec = kwargs['qp_vec']
         H_l_D = kwargs['H_l_D']
+        p_l_dot = kwargs['p_l_dot']
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
@@ -482,6 +483,7 @@ class Agent2:
         u_mf = kwargs['u_mf']
         qp_vec = kwargs['qp_vec']
         H_l_D = kwargs['H_l_D']
+        p_l_dot = kwargs['p_l_dot']
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
@@ -525,8 +527,6 @@ class Agent2:
             Beta_mf, Beta_l = Beta_j(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, j)
             alpha_mf, alpha_l = alpha_j(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H_l_D, j)
 
-        print Beta_mf, Beta_l
-        print alpha_mf, alpha_l
         return -1*self.Gamma*(self.gamma*(alpha_mf + np.dot(Beta_mf,u_s)) +\
                               (1-self.gamma)*(alpha_l + np.dot(Beta_l,u_s)))
 
