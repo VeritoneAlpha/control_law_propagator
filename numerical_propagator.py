@@ -155,6 +155,7 @@ def propagate_dynamics(sliding_window_instance):
         q_mf, q_mf_dot, u_mf = construct_mf_vectors(sliding_window_instance) 
         qp_vecs, qp_dot_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)  # assume "u" constant, and propagate q and p
 
+
         # also need to return derivatives
         # use qp_dot_vecs at the end of each bucket to get the derivatives
         # t=0.0 doesn't matter what the value is here because derivative is not a function of time anyway (it's time invariant)
