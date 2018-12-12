@@ -6,7 +6,7 @@ sys.path.insert(0, './cdi-edge-controller')
 import numerical_propagator as prp
 import unittest   
 import numpy as np
-from agent1 import *
+from agents_for_testing import *
 from blackboard import * 
 
 class FunctionalityTestCase(unittest.TestCase):
@@ -14,7 +14,7 @@ class FunctionalityTestCase(unittest.TestCase):
         # define blackboard and agent
         self.bb=Blackboard() 
         # define a sliding_window object (maybe do this in another file)
-        self.agent1=Agent(self.bb, state_indices=[1], control_indices=[1])
+        self.Agent2=Agent(self.bb, state_indices=[1], control_indices=[1])
         pass
     
     def test_propagate_q_p(self):
@@ -22,8 +22,7 @@ class FunctionalityTestCase(unittest.TestCase):
         unittest for propagate_q_p
         '''
         ### define inputs
-        qpu_vec = self.agent1.qpu_vec
-        import pdb; pdb.set_trace()
+        qpu_vec = self.Agent2.qpu_vec
         t_start  = 0.1     # Ohms    
         t_end = 1.5 # Shen - should it be tCdiBkt?    
         sliding_window_instance = 100000.0 

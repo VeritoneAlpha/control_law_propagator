@@ -266,7 +266,6 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, 
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
         qp_vec = qp_vecs[i]
-
         u_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.u_rhs, n_start, n_end, u_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, qp_vec = qp_vec, u_0=u_0, q_s_dot=q_s_dot, p_l_dot=p_l_dot, p_mf_dot=p_mf_dot, q_mf_dot=q_mf_dot, q_mf=q_mf, u_mf=u_mf, H_l_D=H_l_D)
         if len(u_vec)>1:
             u_vec_next=u_vec[-1]
@@ -413,12 +412,10 @@ def sliding_window(sliding_window_instance):
     lambdas = sliding_window_instance.compute_lambdas(q_s_0, p_l_0, u_s_0)
 
     while t < sliding_window_instance.t_terminal:
-        print t
         # for the times, propagate_dynamics needs: t_0, T, and K.  T and K can come from the sliding_window_instance
         #...t_0 will be passed in.  t_0 is the start of the window.
 
-        # this propagates a single window
-        # inside of propagate dynamics
+        # this propagates a single window inside of propagate dynamics
         qpu_vec, q_ls_bar, p_ls_bar, p_mfs_bar, u_bar, q_ls, p_ls, p_mfs, us, q_ls_dot_bar, p_ls_dot_bar, p_mfs_dot_bar, p_mfs_dot_bar, u_dot_bar, window = propagate_dynamics(sliding_window_instance)
         # qs, ps, and us will go to Mean Field somehow
         
