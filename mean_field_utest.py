@@ -29,13 +29,13 @@ class FunctionalityTestCase(unittest.TestCase):
         unittest for propagate_q_p
         '''
         ### define inputs
-        qpu_vec = self.Agent2.qpu_vec
-        #t_start = 
-        #t_end = 
+        qpu_vec = np.array([0, 2, 0, 3, 0, 1, 0])
+        t_start = 0.0
+        t_end = 0.25
         sliding_window_instance = self.Agent2
-        q_mf = construct_mf_vectors(self.Agent2)
-        result_propagate_q_p = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)
-   
+        q_mf, u_mf = [0.0, 2.0], [0.0]
+        result_qp_vecs, result_qp_dot_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)
+    
 
 def suite_test():
     """
@@ -44,10 +44,6 @@ def suite_test():
     unittest.main(verbosity=2)
     suite = unittest.TestSuite()
     suite.addTest(FunctionalityTestCase('test_propagate_q_p'))
-   # suite.addTest(FunctionalityTestCase('test_demo1_chatter_optimizer'))
-   # suite.addTest(FunctionalityTestCase('test_demo1_edgecht_integ_init'))
-   # suite.addTest(FunctionalityTestCase('test_demo1_edgecht_integ_exe'))
-
     return suite
 
 
