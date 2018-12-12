@@ -229,7 +229,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
     p_l_0 = qpu_vec[state_dim:2*state_dim]
     p_mf_0 = qpu_vec[2*state_dim:3*state_dim]
     u_0 = qpu_vec[3*state_dim:]
-    qp_vecs = []
+    qp_vecs = [] 
     qp_vec = np.concatenate([q_l_0, p_l_0, p_mf_0])  # pass in all three: q_0, p_0, u_0, but in the qp_rhs function
     qp_dot_vecs = []
     steps = np.linspace(t_start, t_end, n_s+1)
