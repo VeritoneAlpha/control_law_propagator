@@ -227,8 +227,8 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
         t_start (np.float): start time of bucket
         t_end (np.float): end time of bucket
         sliding_window_instance (instance of user-defined class which inherits SlidingWindow): object defining the dynamics, and the initial conditions and parameters for numerical integration/propagation. 
-        q_mf (1D np.array self.state_dim): 
-        u_mf (1D np.array self.state_dim):
+        q_mf (1D np.array of dimension of total number of states): vector containing mean field state values for states not pertaining to this agent, and containing local values otherwise.
+        u_mf (1D np.array of dimension of total number of states): vector containing mean field control values for control variables not pertaining to this agent, and local values otherwise.
     Outputs:
         qp_vecs (list of 1-D numpy arrays): holds qp values for each time interval
         qp_dot_vecs (list of 1-D numpy arrays): holds q_s_dot, p_mf_dot, p_l_dot  values for each time interval

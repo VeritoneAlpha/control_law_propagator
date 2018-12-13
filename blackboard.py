@@ -10,9 +10,9 @@ class Blackboard:
     
     def __init__(self):
         '''
-        values: list of integers state_indices state_indices
+        Nothing required for initiation, but these are the attributes:
         q_p_u_dict is a dictionary which:
-            -  maps 'q', 'p', 'u', to a dictionary of index-value pairs: local values for q, p, and u for this agent.  
+            - maps 'q', 'p', 'u', to a dictionary of index-value pairs: local values for q, p, and u for this agent.  
             - blackboard holds all of the most recent local values, e.g.
             - {'q_s': {'1':3, '2':0}, 'p_mf': {'1':3, '2': 2}, 'u': {'1': 0}}
             - It doesn't care which agent updated them most recently.  It only needs to know which values to update.
@@ -22,6 +22,8 @@ class Blackboard:
             - The dictionary maps objects of class agent, to a sub-dictionary:
                 - keys: 'q_s_bar', 'q_s_dot_bar', etc.
                 - values: values for the respective "bar" values 
+        agents (list of objects of class SlidingWindow):
+            - holds all of the agents in entire system
         '''
         ## TODO:  _s should really be called _mf because it contains all of the states/controls.
         self.q_p_u_dict = {'q_s':{}, 'p_l':{}, 'p_mf':{}, 'u_s':{}, 'q_s_dot':{}}
@@ -29,6 +31,10 @@ class Blackboard:
         self.agents=[]
        
     def add_agent(self, agent):
+        '''
+        Input:
+            agent (instance of class SlidingWindow):
+        '''
         if agent not in self.agents:
             self.agents.append(agent)
         if agent not in self.bar_dict.keys():
@@ -75,7 +81,14 @@ class Blackboard:
         # TO-DO: send values to simulink interface by storing in database 
         
 def construct_mf_vectors(sliding_window_instance):
-    '''helper function to get  q_mf, q_mf_dot, u_mf (incorrectly called q_s, q_s_dot, u_s, in the q_p_u_dict)
+    '''
+    Helper function to get q_mf, q_mf_dot, u_mf (incorrectly called q_s, q_s_dot, u_s, in the q_p_u_dict)
+    Inputs:
+        sliding_window_instance (object of class SlidingWindow)
+    Ouput:
+        q_mf (1D np.array of dimension of total number of states): vector containing mean field state values for states not pertaining to this agent, and containing local values otherwise.
+        q_mf_dot (1D np.array of dimension total number of states in system): derivative of all state variables at end of bucket.  Contains most recent values as available from the blackboard, and contains local values for all states pertaining to this agent.
+        u_mf (1D np.array of dimension of total number of states): vector containing mean field control values for control variables not pertaining to this agent, and local values otherwise.
     This method supplements the q_s vector inside of sliding_window_instance with the values from the blackboard so that q_mf contains values for all of the states, not just the local ones.
     '''
     # need to get the values for all states and controls in order to construct q_mf, q_mf_dot, and u_mf
@@ -132,7 +145,9 @@ def construct_mf_vectors(sliding_window_instance):
 
 def construct_local_vectors(sliding_window_instance):
     '''helper function to get  q_s, q_s_dot, u_s by reading data from sensors (i.e. blackboard in this case).
-     cannot give us p_mf or p_l becuase p is non-physical and must be computed.
+    Cannot give us p_mf or p_l becuase p is non-physical and must be computed.
+    Inputs:
+        sliding_window_instance (
     output:  
         q_s, q_s_dot, u_s for local agent
     '''
@@ -317,8 +332,12 @@ def construct_mf_vectors(sliding_window_instance):
 def construct_local_vectors(sliding_window_instance):
     '''helper function to get  q_s, q_s_dot, u_s by reading data from sensors (i.e. blackboard in this case).
      cannot give us p_mf or p_l becuase p is non-physical and must be computed.
-    output:  
-        q_s, q_s_dot, u_s for local agent
+    Inputs:
+        sliding_window_instance (object of class SlidingWindow)
+    Output:  
+        q_s (1D np.array of dimension self.state_dim): vector containing local state values from sensors
+        q_s_dot (1D np.array of dimension self.state_dim): vector containing derivatives of local state values
+        u_s  (1D np.array of dimension self.control_dim): vector containing local control values
     '''
     bb = sliding_window_instance.bb
     qpu_vec = sliding_window_instance.qpu_vec
