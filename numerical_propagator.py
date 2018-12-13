@@ -292,6 +292,9 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, 
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
         qp_vec = qp_vecs[i]
+        #Beta_j = Beta_j(sliding_window_instance, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, j)
+        #alpha_j = alpha_j(sliding_window_instance, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H_l_D, j)
+
         u_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.u_rhs, n_start, n_end, u_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, qp_vec = qp_vec, u_0=u_0, q_s_dot=q_s_dot, p_l_dot=p_l_dot, p_mf_dot=p_mf_dot, q_mf_dot=q_mf_dot, q_mf=q_mf, u_mf=u_mf, H_l_D=H_l_D)
         if len(u_vec)>1:
             u_vec_next=u_vec[-1]
@@ -301,6 +304,41 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, 
         u_vec=u_vec_next
     return u_vecs
 
+
+def Beta_j(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, j):
+    Beta_mf=[]
+    Beta_l=[]
+    H_mf_u = self.H_MF_u(q_mf, p_mf)
+    H_l_u = self.H_l_u(q_s, p_l)
+    lambda_l=0
+    j=j-1 # indices start at 0 but control indices start at 1
+    for k in range(len(self.control_indices)):
+        Beta_mf_k = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], p_mf_dot)) + \
+                    H_mf_u[k]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
+        Beta_l_k = H_l_u[j]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[k], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[k], p_mf_dot)) + \
+                   H_l_u[k]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_mf_dot))
+            
+        Beta_mf.append(Beta_mf_k)
+        Beta_l.append(Beta_l_k)
+    return Beta_mf, Beta_l
+        
+def alpha_j(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H_l_D, j):
+    alpha_mf = []
+    alpha_l = []
+    H_mf_u = self.H_MF_u(q_mf, p_mf)
+    H_l_u = self.H_l_u(q_s, p_l)
+    j=j-1
+    H_mf_nou = self.H_MF_nou(q_mf, p_mf, u_mf)
+    H_l_nou = self.H_l_nou(q_mf, p_mf, u_mf)
+    for k in range(len(self.control_indices)):
+        alpha_mf_k = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], p_mf_dot)) +\
+                    (H_mf_nou-H_l_D)*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
+
+        alpha_l_k = H_l_u[j]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[k], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[k], p_l_dot)) +\
+                    (H_l_nou-H_l_D)*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_l_dot))
+        alpha_mf.append(alpha_mf_k)
+        alpha_l.append(alpha_l_k)
+    return alpha_mf, alpha_l
 
 def get_weights(K):
     '''
