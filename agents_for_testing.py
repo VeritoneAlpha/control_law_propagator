@@ -4,8 +4,7 @@
 import numerical_propagator as prp
 
 import unittest   
-import numpy as np
-import abc
+import numpy as np import abc
 import scipy as sp
 import ode
 
@@ -22,8 +21,7 @@ class Agent1:
         A word on notation:  The notation used for the methods of the agent is:  
             - If it is a partial derivative: <denominator>_rhs_H_<type of hamiltonian (l, mf, or s)>_<nou or u>.  e.g., 
             "qp_rhs_H_l_u" denotes the partial derivative with respect to q and p of the terms in the local Hamiltonian that contain control variables.
-            - If it is a hamiltonian: H_<type of hamiltonian (l, mf, or s)>_<nou or u>.  e.g. "H_mf_nou" denotes the mean field hamiltonian
-            with terms not containing u.
+            - If it is a hamiltonian: H_<type of hamiltonian (l, mf, or s)>_<nou or u>.  e.g. "H_mf_nou" denotes the mean field hamiltonian with terms not containing u.
         '''
         self.state_indices = state_indices
         self.control_indices = control_indices

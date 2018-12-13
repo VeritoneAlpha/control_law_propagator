@@ -2,7 +2,6 @@
 # 11/18/18
 
 import sys
-sys.path.insert(0, './cdi-edge-controller')
 import numerical_propagator as prp
 import unittest   
 import numpy as np
@@ -70,13 +69,14 @@ class FunctionalityTestCase(unittest.TestCase):
         H_l_D = 6
 
         result_u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, p_l_dot, p_mf_dot, q_mf_dot, q_mf, u_mf, H_l_D)
+
         expected_result_u_vecs = [np.array([3.42376056]), np.array([6.84752111])]
         self.assertTrue(np.amax(abs(result_u_vecs[0] - expected_result_u_vecs[0]))<1e-6, msg=None) 
         self.assertTrue(np.amax(abs(result_u_vecs[1] - expected_result_u_vecs[1]))<1e-6, msg=None) 
          
     def test_propagate_dynamics(self):
         '''
-        unittest for propagate_q_p
+        unittest for propagate_dynamics
         '''
         self.Agent2.n_s = 2
         ### define inputs
