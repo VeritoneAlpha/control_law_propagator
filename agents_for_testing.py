@@ -4,7 +4,8 @@
 import numerical_propagator as prp
 
 import unittest   
-import numpy as np import abc
+import numpy as np 
+import abc
 import scipy as sp
 import ode
 
