@@ -1,0 +1,13 @@
+algParam:
+  gamma:
+  Gamma:
+  K:
+  T:
+  n_s:
+odeParam:
+  integrateTol:
+  maxIter:
+agentParam:
+  name:
+  state_dim: 
+  control_indices:
