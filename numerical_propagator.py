@@ -130,7 +130,7 @@ def propagate_dynamics(sliding_window_instance):
     Inputs:
         sliding_window_instance (instance of user-defined class which inherits SlidingWindow): object defining the dynamics, and the initial conditions and parameters for numerical integration/propagation. 
     Outputs:
-        qpu_vec (np.array):
+        qpu_vec (1D np.array of dimension self.state_dim*3+control_dim): concatenated array of state, local costate, mean field costate, and control values.
         q_ls_bar (1D np.array self.state_dim): local state value to be implemented for current window
         p_ls_bar (1D np.array of dimension self.state_dim): local costate value to be implemented 
         p_mfs_bar (1D np.array of dimension self.state_dim): mean field costate value to be implemented
@@ -169,9 +169,6 @@ def propagate_dynamics(sliding_window_instance):
         q_mf, q_mf_dot, u_mf = construct_mf_vectors(sliding_window_instance) 
         qp_vecs, qp_dot_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)  # assume "u" constant, and propagate q and p
 
-        # also need to return derivatives
-        # use qp_dot_vecs at the end of each bucket to get the derivatives
-        # t=0.0 doesn't matter what the value is here because derivative is not a function of time anyway (it's time invariant)
         qp_dot_vec = qp_dot_vecs[-1]
         q_s_dot = qp_dot_vec[:state_dim]
         p_l_dot = qp_dot_vec[state_dim:2*state_dim] 
@@ -224,14 +221,14 @@ def propagate_dynamics(sliding_window_instance):
 
 def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
     '''
-    Propagate q and p to end of bucket
+    This method propagates q and p to the end of one bucket, with a constant control.
     Inputs:
-        qpu_vec (1D numpy array): local qpu_vec containing q_s, p_l, p_mf, u_s, concatenated in one array
-        t_start 
-        t_end
-        sliding_window_instance
-        q_mf
-        u_mf
+        qpu_vec (1D np.array of dimension self.state_dim*3+control_dim): Most current values for local qpu_vec containing q_s, p_l, p_mf, u_s, concatenated in one array
+        t_start (np.float): start time of bucket
+        t_end (np.float): end time of bucket
+        sliding_window_instance (instance of user-defined class which inherits SlidingWindow): object defining the dynamics, and the initial conditions and parameters for numerical integration/propagation. 
+        q_mf (1D np.array self.state_dim): 
+        u_mf (1D np.array self.state_dim):
     Outputs:
         qp_vecs (list of 1-D numpy arrays): holds qp values for each time interval
         qp_dot_vecs (list of 1-D numpy arrays): holds q_s_dot, p_mf_dot, p_l_dot  values for each time interval
@@ -270,8 +267,23 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
 
 def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, p_l_dot, p_mf_dot, q_mf_dot, q_mf, u_mf, H_l_D):
     '''
-    Propagate u based on q and p values
-    u_vecs (list of 1-D numpy arrays):
+    Propagate u based on q and p values for one bucket in time.
+    Inputs:
+        u_0 (1D np.array of dimension self.control_dim): control values at beginning of bucket
+        qp_vecs (list of 1D np.arrays each of dimension self.state_dim*3): list of concatenated state, local costate, and mean field costate vectors from q and p propagation.
+        t_start (np.float): start time of bucket 
+        t_end (np.float): end time of bucket
+        sliding_window_instance (instance of user-defined class which inherits SlidingWindow): object defining the dynamics, and the initial conditions and parameters for numerical integration/propagation. Same as agent.
+        q_s_dot (1D np.array of dimension self.state_dim): derivative of local state at end of bucket
+        p_l_dot (1D np.array of dimension self.state_dim): derivative of local state at end of bucket
+        p_mf_dot (1D np.array of dimension self.state_dim): derivative of local state at end of bucket
+
+        q_mf_dot (1D np.array of dimension total number of states in system): derivative of local state at end of bucket
+        q_mf (1D np.array of dimension of total number of states in system):  mean field state, i.e. state vector holding values for ALL states, not just those pertaiing to the current agen.
+        u_mf (1D np.array of dimension self.control_dim):  mean field control, i.e. control vector holding values for ALL controls, not just those pertaining to the current agent.
+        H_l_D (np.float):  value of local desired Hamiltonian at beginning of window
+    Outputs:
+        u_vecs (list of 1-D numpy arrays): list of propagated control values for entire bucket in time
     '''
     u_vecs = []
     u_vec = u_0
@@ -322,6 +334,17 @@ def apply_filter(vec, weights, weights_total):
     return vec_normalized
 
 def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
+    '''
+    This method computes p_mf and p_l after propagating the control.  This is necessary even though
+        we have already propagated q and p because the manifold has changed when the control, u, has
+        changed.
+    Inputs:
+        qpu_vec (1D np.array of dimension self.state_dim*3+control_dim): concatenated array of state, local costate, mean field costate, and control values.
+        sliding_window_instance (instance of user-defined class which inherits SlidingWindow): object defining the dynamics, and the initial conditions and parameters for numerical integration/propagation. Same as agent.
+    Outputs: 
+        p_mf (1D np.array of dimension self.state_dim):
+        p_l (1D np.array of dimension self.state_dim):
+    '''
     state_dim = sliding_window_instance.state_dim
     # need to prepare the q_mf, q_mf_dot, and u_mf vectors
     q_mf, q_mf_dot, u_mf = construct_mf_vectors(sliding_window_instance)
@@ -338,6 +361,10 @@ def compute_p_mf_p_l(qpu_vec, sliding_window_instance):
 def update_q_mf(q_mf, q_s, sliding_window_instance):
     '''
     helper function that updates the mean field vectors with the local state, control computed during propagation
+    Inputs:
+        q_mf (1D np.array of dimension total number of states in system): 
+        q_s (1D np.array of dimension self.state_dim):
+        sliding_window_instance (instance of user-defined class which inherits SlidingWindow): object defining the dynamics, and the initial conditions and parameters for numerical integration/propagation. 
     Output:
         q_mf (np array): q_mf, with the local values overwritten by the most recent values from q_s
         (p_mf gets updated automatically, and u_s is constant, so u_mf also stays the same)
@@ -375,17 +402,20 @@ def sliding_window(sliding_window_instance):
         - Construct agent synchronized Hamiltonian and partial derivatives
     
     Inputs:
-    The only input is sliding_window_instance, but we use the following attributes of the sliding_window_instance:
-        t_0 (int): Initial time to start propagating dynamics
-        T (int): End time of propagating dynamics
-        q_0 (np.array): initial values of state vector
-        p_0 (np.array): initial values of costate vector
-        u_0 (np.array): initial values of control vector
-        state_dim (int): number of states
-        Gamma (float): algorithmic parameter for Riemann descent algorithm
-        t_terminal (int): time marking termination of control law propagator algorithm
+        sliding_window_instance (instance of user-defined class which inherits SlidingWindow): object defining the dynamics, and the initial conditions and parameters for numerical integration/propagation. 
+        The only input is sliding_window_instance, but we use the following attributes of the sliding_window_instance:
+            t_0 (np.float): Initial time to start propagating dynamics
+            T (np.float): End time of propagating dynamics
+            qpu_vec (1D np.array of dimension self.state_dim*3+control_dim): Most current values for local qpu_vec containing q_s, p_l, p_mf, u_s, concatenated in one array
+            state_dim (int): number of states
+            Gamma (float): algorithmic parameter for Riemann descent algorithm
+            t_terminal (int): time marking termination of control law propagator algorithm
     Outputs:
-        q_bars, p_bars, u_bars (list of np.arrays): implemented state/costate/control values for entire propagator.
+         q_ls_bars (list of np.arrays): implemented state/costate/control values for entire propagator.
+         p_ls_bars (list of np.arrays, each of dimension self.state_dim): implemented local costate values for entire propagation.
+         p_mfs_bars (list of np.arrays, each of dimension self.state_dim): implemented mean field costate values for entire propagation.
+         u_bars (list of np.arrays, each of dimension self.control_dim): implemented control values for entire propagation.
+         windows (list of lists): windows for each vector of bar values to be implemented
     '''
     
     t_0, T, K, state_dim,t_terminal = sliding_window_instance.t_0, sliding_window_instance.T, sliding_window_instance.K,  sliding_window_instance.state_dim, sliding_window_instance.t_terminal

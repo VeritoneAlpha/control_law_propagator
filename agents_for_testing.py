@@ -39,6 +39,7 @@ class Agent1:
         self.qpu_vec = np.hstack([self.q_s_0, self.p_l_0, self.p_mf_0, self.u_s_0])
         self.q_s_dot = np.array([0])  # must have same dimensions as q_s
         self.state_dim = 1
+        self.control_dim = 1
         self.Gamma = 1
         self.gamma = 1  # function is inputted by the user to compute this.
         self.sync = None # gets filled in when Synchronizer class is initialized
@@ -335,6 +336,7 @@ class Agent2:
         self.u_s_0 = np.array([0])
         self.qpu_vec = np.hstack([self.q_s_0, self.p_l_0, self.p_mf_0, self.u_s_0])
         self.state_dim = 2
+        self.control_dim = 1
         self.Gamma = 1 
         self.gamma = 1 # gets computed each time the agent is visited
         self.q_s_dot = np.array([0,1])  # must have same dimensions as q_s
