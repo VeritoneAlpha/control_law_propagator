@@ -134,17 +134,16 @@ def propagate_dynamics(sliding_window_instance):
         q_ls_bar (1D np.array self.state_dim): local state value to be implemented for current window
         p_ls_bar (1D np.array of dimension self.state_dim): local costate value to be implemented 
         p_mfs_bar (1D np.array of dimension self.state_dim): mean field costate value to be implemented
-        u_bar (np.array): local control to be implemented 
+        u_bar (1D np.array of dimension of the number of controls): local control to be implemented 
         q_ls (list of 1D np.array of dimension self.state_dim):   
-        p_ls (1D np.array of dimension self.state_dim):   
-        p_mfs (1D np.array of dimension self.state_dim):   
-        us (np.array):
-        q_ls_dot_bar (1D np.array of dimension self.state_dim):  
-        p_ls_dot_bar (1D np.array of dimension self.state_dim):  
-        p_mfs_dot_bar (1D np.array of dimension self.state_dim):
-        p_mfs_dot_bar (1D np.array of dimension self.state_dim):
-        u_dot_bar (np.array):
-        window (list): 
+        p_ls (list of 1D np.array of dimension self.state_dim):   
+        p_mfs (list of 1D np.array of dimension self.state_dim):   
+        us (list of 1D np.array of dimension self.state_dim):
+        q_ls_dot_bar (1D np.array self.state_dim): derivative of local state value to be implemented for current window
+        p_ls_dot_bar (1D np.array of dimension self.state_dim): derivative of local costate value to be implemented 
+        p_mfs_dot_bar (1D np.array of dimension self.state_dim): derivative of mean field costate value to be implemented
+        u_dot_bar (1D np.array of dimension of the number of controls): derivative of local control to be implemented 
+        window (list): start and end window in time to implement all of the "_bar" values listed above.
     '''
     q_ls=[]
     p_ls=[]
@@ -175,7 +174,8 @@ def propagate_dynamics(sliding_window_instance):
         # t=0.0 doesn't matter what the value is here because derivative is not a function of time anyway (it's time invariant)
         qp_dot_vec = qp_dot_vecs[-1]
         q_s_dot = qp_dot_vec[:state_dim]
-        p_l_dot = qp_dot_vec[state_dim:2*state_dim] p_mf_dot = qp_dot_vec[2*state_dim:]
+        p_l_dot = qp_dot_vec[state_dim:2*state_dim] 
+        p_mf_dot = qp_dot_vec[2*state_dim:]
 
         # prepend initial condition for q and p for propagating u
         lhs_qp_vecs = [qpu_vec[:-1]] + qp_vecs[:-1] # last item in qpu_vec is "u", so leave it out. last item in qp_vecs is the last point in propagation (since we are using left hand side of q and p - leave it out.
