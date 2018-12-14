@@ -36,12 +36,10 @@ class FunctionalityTestCase(unittest.TestCase):
         q_mf, u_mf = [0.0, 2.0], [0.0]
         result_qp_vecs, result_qp_dot_vecs = propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf)
         
-        expected_result_qp_vecs =[np.array([0.        , 2.13314708, 0.        , 2.74185292, 0.        ,
-       1.13314708]), np.array([0.        , 2.28402231, 0.        , 2.46597769, 0.        ,
-       1.28402231])] 
-        expected_result_qp_dot_vecs =[np.array([ 0.        ,  1.13314708, -0.        , -2.13314708,  0.        ,
-        1.13314708]), np.array([ 0.        ,  1.28402231, -0.        , -2.28402231,  0.        ,
-        1.28402231])] 
+        expected_result_qp_vecs =[np.array([0.        , 2.13314708, 0.        , 2.74185292, 0.        , 1.13314708]), np.array([0.        , 2.28402231, 0.        , 2.46597769, 0.        , 1.28402231])]
+ 
+        expected_result_qp_dot_vecs = [np.array([ 0.        ,  1.13314708, -0.        , -2.13314708,  0.        , 1.13314708]), np.array([ 0.        ,  1.28402231, -0.        , -2.28402231,  0.        , 1.28402231])]
+
 
         self.assertTrue(np.amax(abs(result_qp_vecs[0] - expected_result_qp_vecs[0]))<1e-6, msg=None) 
         self.assertTrue(np.amax(abs(result_qp_vecs[1] - expected_result_qp_vecs[1]))<1e-6, msg=None) 
@@ -70,7 +68,7 @@ class FunctionalityTestCase(unittest.TestCase):
 
         result_u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, p_l_dot, p_mf_dot, q_mf_dot, q_mf, u_mf, H_l_D)
 
-        expected_result_u_vecs = [np.array([3.42376056]), np.array([6.84752111])]
+        expected_result_u_vecs =[np.array([3.42376055]), np.array([6.8475211])] 
         self.assertTrue(np.amax(abs(result_u_vecs[0] - expected_result_u_vecs[0]))<1e-6, msg=None) 
         self.assertTrue(np.amax(abs(result_u_vecs[1] - expected_result_u_vecs[1]))<1e-6, msg=None) 
          
@@ -132,6 +130,7 @@ def suite_test():
     unittest.main(verbosity=2)
     suite = unittest.TestSuite()
     suite.addTest(FunctionalityTestCase('test_propagate_q_p'))
+    suite.addTest(FunctionalityTestCase('test_propagate_u'))
     return suite
 
 
