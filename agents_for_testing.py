@@ -185,55 +185,23 @@ class Agent1:
         u_mf = kwargs['u_mf']
         qp_vec = kwargs['qp_vec']
         H_l_D = kwargs['H_l_D']
+        Beta_mf = kwargs['Beta_mf']
+        Beta_l = kwargs['Beta_l']
+        alpha_mf = kwargs['alpha_mf']
+        alpha_l = kwargs['alpha_l']
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
-
-        def Beta_j(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, j):
-            Beta_mf_j=np.array([])
-            Beta_l_j=np.array([])
-            H_mf_u = self.H_MF_u(q_mf, p_mf)
-            H_l_u = self.H_l_u(q_s, p_l)
-            lambda_l = 0
-            j=j-1 # indices start at 0 but control indices start at 1
-            for k in range(len(self.control_indices)):
-                # recall self.q_rhs_H_mf_u() returns a 2D np.array of size control_dim x state_dim, so self.q_rhs_H_mf_u()[k] is actually a 1D np.array
-                Beta_mf_k = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], p_mf_dot)) + \
-                            H_mf_u[k]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
-                Beta_l_k = H_l_u[j]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[k], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[k], p_mf_dot)) + \
-                           H_l_u[k]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_mf_dot))
-
-                Beta_mf_j=np.concatenate([Beta_mf_j, np.array([Beta_mf_k])])
-                Beta_l_j=np.concatenate([Beta_l_j, np.array([Beta_l_k])])
-
-            return Beta_mf_j, Beta_l_j
-
-                
-        def alpha_j(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H_l_D, j):
-            H_mf_u = self.H_MF_u(q_mf, p_mf)
-            H_l_u = self.H_l_u(q_s, p_l)
-            j=j-1
-            H_mf_nou = self.H_MF_nou(q_mf, p_mf, u_mf)
-            H_l_nou = self.H_l_nou(q_mf, p_mf, u_mf)
-            lambda_l=0
-            alpha_mf_j = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_nou(p_mf, q_mf), q_s_dot) + np.dot(self.p_rhs_H_mf_nou(p_mf, q_mf), p_mf_dot)) +\
-                            (H_mf_nou-H_l_D)*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
-
-            alpha_l_j = H_l_u[j]*(np.dot(self.q_rhs_H_l_nou(q_s, p_l, lambda_l), q_s_dot) + np.dot(self.p_rhs_H_l_nou(q_s, p_l, lambda_l), p_l_dot)) +\
-                            (H_l_nou-H_l_D)*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_l_dot))
-
-            return alpha_mf_j, alpha_l_j
-        
         u_s_dot = np.array([])
-        for j in self.control_indices:
+        for j in range(self.control_dim):
             '''for each control, we need to:
                 1) Compute and get a 1D np.array for each of alpha_l_j, etc.
                 2) Compute u_s_dot_j = -1*self.Gamma*(self.gamma*(alpha_mf_j + np.dot(Beta_mf_j, u_s)) + (1-self.gamma)*(alpha_l_j + np.dot(Beta_l_j,u_s)))
                 3) Concatenate all of the u_s_dot_j to construct u_s_dot in a 1D np.array
             '''
             
-            Beta_mf_j, Beta_l_j = Beta_j(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, j)
-            alpha_mf_j, alpha_l_j = alpha_j(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H_l_D, j)
+            Beta_mf_j,Beta_l_j = Beta_mf[j], Beta_l[j] 
+            alpha_mf_j, alpha_l_j = alpha_mf[j], alpha_l[j]
             # Beta_mf_j, Beta_l_j should be vectors
             # alpha_mf_j, alpha_l_j should be scalars
             u_s_dot_j = -1*self.Gamma*(self.gamma*(alpha_mf_j + np.dot(Beta_mf_j, u_s)) + (1-self.gamma)*(alpha_l_j + np.dot(Beta_l_j,u_s)))
