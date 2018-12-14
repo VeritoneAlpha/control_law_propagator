@@ -81,11 +81,11 @@ class FunctionalityTestCase(unittest.TestCase):
         self.Agent3.n_s = 2
         ### define inputs
         qpu_vec = np.array([0, 2, 0, 3, 0, 1, 0, 0])
-        u_0 = np.array([0])
+        u_0 = np.array([0, 0])
         lhs_qp_vecs=[np.array([0, 2, 0, 3, 0, 1]), np.array([0., 2.13314708, 0., 2.74185292, 0., 1.13314708])] 
         t_start = 0.0
         t_end = 0.25
-        sliding_window_instance = self.Agent2
+        sliding_window_instance = self.Agent3
         q_s_dot = np.array([0., 1.28402231]) 
         p_l_dot = np.array([-0., -2.28402231])
         p_mf_dot = np.array([0., 1.28402231])

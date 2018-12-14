@@ -288,6 +288,7 @@ class Agent1:
         assert np.shape(L_mf_total_q_dot)[0] == self.state_dim, 'dimensions of L_mf_total_q_dot must match those of the local state, currently the dimensions are ' +str(np.shape(L_mf_total_q_dot)[0])
         return L_mf_total_q_dot
 
+
 class Agent2:
     
     def __init__(self, blackboard, state_indices, control_indices):
@@ -604,7 +605,7 @@ class Agent3:
         self.gamma = 1 # gets computed each time the agent is visited
         self.q_s_dot = np.array([0,1])  # must have same dimensions as q_s
         self.sync = None # gets Synchronizer class is initialized
-        self.name='Agent2'
+        self.name='Agent3'
         
         # Inputs for numerical integration
         self.integrateTol = 10**-5
@@ -649,7 +650,7 @@ class Agent3:
         return 1
 
     def H_l_u(self, q_s, p_l):
-        return np.array([0])
+        return np.array([0, 0])
 
     def q_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
         q_rhs_H_l_u = self.q_rhs_H_l_u(q_s, p_l)
@@ -664,7 +665,7 @@ class Agent3:
 
     def q_rhs_H_l_u(self, q_s, p_l):
         # this must be 2D array, so wrap it in np.array
-        q_rhs_H_l_u = np.array([q_s])
+        q_rhs_H_l_u = np.array([q_s, p_l])
         return q_rhs_H_l_u
     
     def q_rhs_H_l_nou(self, q_s, p_l, lambda_l):
@@ -679,7 +680,7 @@ class Agent3:
 
     def p_rhs_H_l_u(self, q_s, p_l):
         # this must be 2D array, so wrap it in np.array
-        p_rhs_H_l_u = np.array([q_s])
+        p_rhs_H_l_u = np.array([q_s, q_s])
         return p_rhs_H_l_u
     
     def p_rhs_H_l_nou(self, q_s, p_l, lambda_l):
@@ -782,13 +783,13 @@ class Agent3:
     def H_MF_u(self, q_mf, p_mf):
         # q_mf, u_mf are vectors for ALL of the states, and controls
         # retrns a numpy array with each element corresponding to H_mf for a particular control variable, j
-        return np.array([self.H_MF_u_1(q_mf, p_mf)]) #*u_mf[0]])  # + self.H_MF_u_2(q_mf, p_mf)*u_mf[1]
+        return np.array([self.H_MF_u_1(q_mf, p_mf), self.H_MF_u_2(q_mf, p_mf)]) 
 
     def H_MF_u_1(self, q_mf, p_mf):
         return q_mf[0]*q_mf[1]
     
-#     def H_MF_u_2(self, q_mf, p_mf):
-#         return q_mf[1]
+    def H_MF_u_2(self, q_mf, p_mf):
+        return q_mf[1]
         
     def qp_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
         # remember that we want to propagate as much as possible together in the same rhs function for numerical purposes
@@ -812,7 +813,7 @@ class Agent3:
         #    - first dimension is the index of the control
         #    - second dimension is the index of the state
         p_H_mf_u_dot_1 = p_mf # must be of dimension state_dim
-        q_rhs_H_mf_u = np.array([p_H_mf_u_dot_1])
+        q_rhs_H_mf_u = np.array([p_H_mf_u_dot_1, p_H_mf_u_dot_1])
         return q_rhs_H_mf_u
 
     def p_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
@@ -830,7 +831,7 @@ class Agent3:
 
     def p_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
         q_H_mf_u_dot = p_mf
-        return np.array([q_H_mf_u_dot])
+        return np.array([q_H_mf_u_dot, q_H_mf_u_dot])
 
     def L_mf_q_dot(self, q_mf, q_mf_dot, u_mf):
         # q_mf_dot, q_mf (inputs) here will be vectors with ALL of the states
