@@ -16,11 +16,13 @@ class FunctionalityTestCase(unittest.TestCase):
         # define a sliding_window object (maybe do this in another file)
         self.Agent1=Agent1(self.bb, state_indices=[1], control_indices=[1])
         self.Agent2=Agent2(self.bb, state_indices=[1,2], control_indices=[1])
+        self.Agent3=Agent3(self.bb, state_indices=[1,2], control_indices=[1, 2])
         # add agents to the blackboard
         self.bb.update_q_p_u_dict(self.Agent1)
         self.bb.update_q_p_u_dict(self.Agent2)
+        self.bb.update_q_p_u_dict(self.Agent3)
         # add the agents to the synchronizer
-        self.agents=[self.Agent1, self.Agent2]
+        self.agents=[self.Agent1, self.Agent2, self.Agent3]
         self.sync=Synchronizer(self.agents, self.bb)
 
     def test_propagate_q_p(self):
@@ -64,6 +66,32 @@ class FunctionalityTestCase(unittest.TestCase):
         q_mf_dot = np.array([0., 2.])
         q_mf = np.array([0., 2.13314708]) 
         u_mf = np.array([0.]) 
+        H_l_D = 6
+
+        result_u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, p_l_dot, p_mf_dot, q_mf_dot, q_mf, u_mf, H_l_D)
+
+        expected_result_u_vecs =[np.array([3.42376055]), np.array([6.8475211])] 
+        self.assertTrue(np.amax(abs(result_u_vecs[0] - expected_result_u_vecs[0]))<1e-6, msg=None) 
+        self.assertTrue(np.amax(abs(result_u_vecs[1] - expected_result_u_vecs[1]))<1e-6, msg=None) 
+
+    def test_propagate_u_dim_2(self):
+        '''
+        unittest for propagate_u with 2 dimensions, using Agent3
+        '''
+        self.Agent3.n_s = 2
+        ### define inputs
+        qpu_vec = np.array([0, 2, 0, 3, 0, 1, 0, 0])
+        u_0 = np.array([0])
+        lhs_qp_vecs=[np.array([0, 2, 0, 3, 0, 1]), np.array([0., 2.13314708, 0., 2.74185292, 0., 1.13314708])] 
+        t_start = 0.0
+        t_end = 0.25
+        sliding_window_instance = self.Agent2
+        q_s_dot = np.array([0., 1.28402231]) 
+        p_l_dot = np.array([-0., -2.28402231])
+        p_mf_dot = np.array([0., 1.28402231])
+        q_mf_dot = np.array([0., 2.])
+        q_mf = np.array([0., 2.13314708]) 
+        u_mf = np.array([0., 0.0]) 
         H_l_D = 6
 
         result_u_vecs = propagate_u(u_0, lhs_qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, p_l_dot, p_mf_dot, q_mf_dot, q_mf, u_mf, H_l_D)
@@ -129,8 +157,9 @@ def suite_test():
     """
     unittest.main(verbosity=2)
     suite = unittest.TestSuite()
-    suite.addTest(FunctionalityTestCase('test_propagate_q_p'))
-    suite.addTest(FunctionalityTestCase('test_propagate_u'))
+    #suite.addTest(FunctionalityTestCase('test_propagate_q_p'))
+    suite.addTest(FunctionalityTestCase('test_propagate_u_dim_2'))
+    #suite.addTest(FunctionalityTestCase('test_propagate_u'))
     return suite
 
 
