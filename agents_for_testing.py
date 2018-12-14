@@ -311,7 +311,7 @@ class Agent2:
         self.q_s_0 = np.array([0,2])
         self.p_l_0 = np.array([0,3])
         self.p_mf_0 = np.array([0,1])
-        self.u_s_0 = np.array([0, 0])
+        self.u_s_0 = np.array([0])
         self.qpu_vec = np.hstack([self.q_s_0, self.p_l_0, self.p_mf_0, self.u_s_0])
         self.state_dim = len(self.state_indices)
         self.control_dim = len(self.control_indices)
@@ -333,7 +333,7 @@ class Agent2:
         self.t_terminal = 2
         self.n_s = 10
 
-        #self.validate_dimensions() #jm_temp
+        self.validate_dimensions() 
 
     def __repr__(self):
         return self.name
@@ -516,7 +516,6 @@ class Agent2:
         # q_rhs_H_mf is the derivative wrt each of the local variables, so it will return something of dimension state_dim
         # q_rhs_H_mf_u returns the partial derivatives wrt each control, concatenated together
         q_rhs_H_mf_u = self.q_rhs_H_mf_u(q_mf, p_mf, u_mf)
-        q_rhs_H_mf_u = np.array([[0,0],[1,1]]) # jm_temp
         assert np.shape(q_rhs_H_mf_u)==(len(self.control_indices), self.state_dim) # first dimension should be number of controls, inner dimension should be state_dim
         q_rhs_H_mf_u_summed = sum([q_rhs_H_mf_u[i]*u_s[i] for i in range(len(u_s))])
         return self.q_rhs_H_mf_nou(q_mf, p_mf) + q_rhs_H_mf_u_summed
