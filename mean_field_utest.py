@@ -15,7 +15,7 @@ class FunctionalityTestCase(unittest.TestCase):
         self.bb=Blackboard() 
         # define a sliding_window object (maybe do this in another file)
         self.Agent1=Agent1(self.bb, state_indices=[1], control_indices=[1])
-        self.Agent2=Agent2(self.bb, state_indices=[1,2], control_indices=[1])
+        self.Agent2=Agent2(self.bb, state_indices=[1,2], control_indices=[1,2])
         # add agents to the blackboard
         self.bb.update_q_p_u_dict(self.Agent1)
         self.bb.update_q_p_u_dict(self.Agent2)
