@@ -288,14 +288,22 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, 
     u_vecs = []
     u_vec = u_0
     n_s = sliding_window_instance.n_s
+    state_dim = sliding_window_instance.state_dim
     steps = np.linspace(t_start,t_end, n_s+1)
     for i in range(n_s):
         n_start, n_end = steps[i], steps[i+1]
         qp_vec = qp_vecs[i]
-        #Beta_j = Beta_j(sliding_window_instance, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, j)
-        #alpha_j = alpha_j(sliding_window_instance, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H_l_D, j)
+        q_s = qp_vec[:state_dim]
+        p_l = qp_vec[state_dim:2*state_dim]
+        p_mf = qp_vec[2*state_dim:]
+        # each of Beta_mf, Beta_l are lists of numpy arrays
+        u_s=u_vec
+        Beta_mf, Beta_l = Betas(sliding_window_instance, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l)
+        # each of alpha_mf, alpha_l are 1D numpy arrays
+        alpha_mf, alpha_l = alphas(sliding_window_instance, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H_l_D, p_l_dot)
 
-        u_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.u_rhs, n_start, n_end, u_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, qp_vec = qp_vec, u_0=u_0, q_s_dot=q_s_dot, p_l_dot=p_l_dot, p_mf_dot=p_mf_dot, q_mf_dot=q_mf_dot, q_mf=q_mf, u_mf=u_mf, H_l_D=H_l_D)
+
+        u_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.u_rhs, n_start, n_end, u_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, qp_vec = qp_vec, u_0=u_0, q_s_dot=q_s_dot, p_l_dot=p_l_dot, p_mf_dot=p_mf_dot, q_mf_dot=q_mf_dot, q_mf=q_mf, u_mf=u_mf, H_l_D=H_l_D, Beta_mf=Beta_mf, Beta_l=Beta_l, alpha_mf=alpha_mf, alpha_l=alpha_l)
         if len(u_vec)>1:
             u_vec_next=u_vec[-1]
         else:
@@ -304,41 +312,47 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, 
         u_vec=u_vec_next
     return u_vecs
 
+def Betas(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l):
+    Beta_mf=[]
+    Beta_l=[]
+    H_mf_u = self.H_MF_u(q_mf, p_mf)
+    H_l_u = self.H_l_u(q_s, p_l)
+    lambda_l = 0
+    for j in range(self.control_dim):
+        Beta_mf_j=np.array([])
+        Beta_l_j=np.array([])
+        for k in range(len(self.control_indices)):
+            # recall self.q_rhs_H_mf_u() returns a 2D np.array of size control_dim x state_dim, so self.q_rhs_H_mf_u()[k] is actually a 1D np.array
+            Beta_mf_k = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], p_mf_dot)) + \
+                        H_mf_u[k]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
+            Beta_l_k = H_l_u[j]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[k], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[k], p_mf_dot)) + \
+                       H_l_u[k]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_mf_dot))
+    
+            Beta_mf_j=np.concatenate([Beta_mf_j, np.array([Beta_mf_k])])
+            Beta_l_j=np.concatenate([Beta_l_j, np.array([Beta_l_k])])
+        Beta_mf.append(Beta_mf_j) 
+        Beta_l.append(Beta_l_j) 
+    return Beta_mf, Beta_l
 
-#def Beta_j(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, j):
-#    Beta_mf=[]
-#    Beta_l=[]
-#    H_mf_u = self.H_MF_u(q_mf, p_mf)
-#    H_l_u = self.H_l_u(q_s, p_l)
-#    lambda_l=0
-#    j=j-1 # indices start at 0 but control indices start at 1
-#    for k in range(len(self.control_indices)):
-#        Beta_mf_k = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], p_mf_dot)) + \
-#                    H_mf_u[k]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
-#        Beta_l_k = H_l_u[j]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[k], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[k], p_mf_dot)) + \
-#                   H_l_u[k]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_mf_dot))
-#            
-#        Beta_mf.append(Beta_mf_k)
-#        Beta_l.append(Beta_l_k)
-#    return Beta_mf, Beta_l
-#        
-#def alpha_j(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H_l_D, j):
-#    alpha_mf = []
-#    alpha_l = []
-#    H_mf_u = self.H_MF_u(q_mf, p_mf)
-#    H_l_u = self.H_l_u(q_s, p_l)
-#    j=j-1
-#    H_mf_nou = self.H_MF_nou(q_mf, p_mf, u_mf)
-#    H_l_nou = self.H_l_nou(q_mf, p_mf, u_mf)
-#    for k in range(len(self.control_indices)):
-#        alpha_mf_k = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], p_mf_dot)) +\
-#                    (H_mf_nou-H_l_D)*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
-#
-#        alpha_l_k = H_l_u[j]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[k], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[k], p_l_dot)) +\
-#                    (H_l_nou-H_l_D)*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_l_dot))
-#        alpha_mf.append(alpha_mf_k)
-#        alpha_l.append(alpha_l_k)
-#    return alpha_mf, alpha_l
+        
+def alphas(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H_l_D, p_l_dot):
+    alpha_mf=[]
+    alpha_l=[]
+    for j in range(self.control_dim):
+        H_mf_u = self.H_MF_u(q_mf, p_mf)
+        H_l_u = self.H_l_u(q_s, p_l)
+        H_mf_nou = self.H_MF_nou(q_mf, p_mf, u_mf)
+        H_l_nou = self.H_l_nou(q_mf, p_mf, u_mf)
+        lambda_l=0
+        alpha_mf_j = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_nou(p_mf, q_mf), q_s_dot) + np.dot(self.p_rhs_H_mf_nou(p_mf, q_mf), p_mf_dot)) +\
+                        (H_mf_nou-H_l_D)*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
+    
+        alpha_l_j = H_l_u[j]*(np.dot(self.q_rhs_H_l_nou(q_s, p_l, lambda_l), q_s_dot) + np.dot(self.p_rhs_H_l_nou(q_s, p_l, lambda_l), p_l_dot)) +\
+                        (H_l_nou-H_l_D)*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_l_dot))
+        alpha_mf.append(alpha_mf_j)
+        alpha_l.append(alpha_l_j)
+
+    return alpha_mf, alpha_l
 
 def get_weights(K):
     '''
