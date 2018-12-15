@@ -11,10 +11,9 @@ import ode
 
 from blackboard import *
 
-
 class Agent1:
     
-    def __init__(self, blackboard, state_indices, control_indices):
+    def __init__(self, blackboard, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10):
         '''
         state_indices (list of integers): This list tells which states pertain to this agent. e.g. [1,2] would 
         tell us that states 1 and 2 pertain to this agent.
@@ -30,31 +29,50 @@ class Agent1:
 
         # Inputs for numerical propagator
         # qp_vec is going to be [q_s, p_l, p_mf], so it will have dimension = 3*state_dim
+        if q_s_0==None:
+            self.q_s_0 = np.zeros((len(state_indices)))
+        else:
+            self.q_s_0 = q_s_0
 
-        self.q_s_0 = np.array([0])
-        self.p_l_0 = np.array([0])
-        self.p_mf_0 = np.array([0])
-        self.u_s_0 = np.array([0])
+        if p_l_0==None:
+            self.p_l_0 = np.zeros((len(state_indices)))
+        else:
+            self.p_l_0 = p_l_0
+
+        if p_mf_0==None:
+            self.p_mf_0 = np.zeros((len(state_indices)))
+        else:
+            self.p_mf_0 = p_mf_0
+     
+        if u_s_0==None:
+            self.u_s_0 = np.zeros((len(self.control_indices)))
+        else:
+            self.u_s_0 = u_s_0
+
+        if q_s_dot==None:
+            self.q_s_dot = np.zeros((len(state_indices)))
+        else:
+            self.q_s_dot = q_s_dot
+
         self.qpu_vec = np.hstack([self.q_s_0, self.p_l_0, self.p_mf_0, self.u_s_0])
-        self.q_s_dot = np.array([0])  # must have same dimensions as q_s
         self.control_dim = len(self.control_indices)
         self.state_dim = len(self.state_indices)
-        self.Gamma = 1
-        self.gamma = 1  # function is inputted by the user to compute this.
+        self.Gamma = Gamma
+        self.gamma = gamma  # function is inputted by the user to compute this.
         self.sync = None # gets filled in when Synchronizer class is initialized
-        self.name='Agent1'
+        self.name = name
 
         # Inputs for numerical integration
-        self.integrateTol = 10**-5
-        self.integrateMaxIter = 400
+        self.integrateTol = integrateTol
+        self.integrateMaxIter = integrateMaxIter
 
         # Inputs for sliding window
-        self.t_0 = 0 
-        self.T =  2
-        self.K = 4
+        self.t_0 = t_0 
+        self.T = T 
+        self.K = K
 
-        self.t_terminal = 4 # terminate entire simulation of this agent
-        self.n_s = 10 # number of steps inside of each bucket
+        self.t_terminal = t_terminal # terminate entire simulation of this agent
+        self.n_s = n_s # number of steps inside of each bucket
 
         self.validate_dimensions()
 
@@ -860,7 +878,8 @@ class Agent3:
 
 class Agent4(Agent2):
     
-    def __init__(self, blackboard, state_indices, control_indices):
+    def __init__(self, blackboard, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10):
+
 #        '''
 #        state_indices (list of integers): This list tells which states pertain to this agent. e.g. [1,2] would 
 #        tell us that states 1 and 2 pertain to this agent.
@@ -877,12 +896,11 @@ class Agent4(Agent2):
 #
 #        # Inputs for numerical propagator
 #        # qp_vec is going to be [q_s, p_l, p_mf], so it will have dimension = 3*state_dim
-#
-#        self.q_s_0 = np.array([0,2])
-#        self.p_l_0 = np.array([0,3])
-#        self.p_mf_0 = np.array([0,1])
-         self.u_s_0 = np.array([0, 0])
-#        self.qpu_vec = np.hstack([self.q_s_0, self.p_l_0, self.p_mf_0, self.u_s_0])
+         self.q_s_0 = q_s_0
+         self.p_l_0 = p_l_0
+         self.p_mf_0 = p_mf_0
+         self.u_s_0 = u_s_0
+         self.qpu_vec = np.hstack([self.q_s_0, self.p_l_0, self.p_mf_0, self.u_s_0])
 #        self.state_dim = len(self.state_indices)
 #        self.control_dim = len(self.control_indices)
 #        self.Gamma = 1 
