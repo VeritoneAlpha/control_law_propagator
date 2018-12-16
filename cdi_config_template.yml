@@ -1,3 +1,12 @@
+agentParam:
+  q_s_0:
+  p_l_0:
+  p_mf_0:
+  u_s_0:
+  q_s_dot_0:
+  name:
+  state_dim: 
+  control_indices:
 algParam:
   gamma:
   Gamma:
@@ -7,7 +16,4 @@ algParam:
 odeParam:
   integrateTol:
   maxIter:
-agentParam:
-  name:
-  state_dim: 
-  control_indices:
+

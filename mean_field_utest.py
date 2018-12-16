@@ -158,9 +158,9 @@ def suite_test():
     """
     unittest.main(verbosity=2)
     suite = unittest.TestSuite()
-    #suite.addTest(FunctionalityTestCase('test_propagate_q_p'))
+    suite.addTest(FunctionalityTestCase('test_propagate_q_p'))
     suite.addTest(FunctionalityTestCase('test_propagate_u_dim_2'))
-    #suite.addTest(FunctionalityTestCase('test_propagate_u'))
+    suite.addTest(FunctionalityTestCase('test_propagate_u'))
     return suite
 
 
@@ -168,8 +168,8 @@ if __name__ == '__main__':
    
     mySuite=suite_test()
       
-    #runner=unittest.TextTestRunner()
-    #runner.run(mySuit)
+    runner=unittest.TextTestRunner()
+    runner.run(mySuit)
     
     result = unittest.result.TestResult()
     mySuite.run(result)
