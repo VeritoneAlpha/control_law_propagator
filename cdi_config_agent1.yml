@@ -1,0 +1,32 @@
+agentParam:
+  name: agent1
+  state_dim: 1
+  control_indices: 1
+  q_s_0: 0
+  p_l_0: 0 
+  p_mf_0: 0
+  q_s_dot_0: 0
+  u_s_0: 0
+algParam:
+  gamma: 1.0
+  Gamma: 1.0
+  K: 2
+  T: 10
+  n_s: 10
+odeParam:
+  integrateTol: 10**-3
+  maxIter: 400
+bbParam:
+  name: agent2
+    q_s_0: 0.0
+    p_l_0: 0.0
+    p_mf_0:
+    q_s_dot_0:
+    u_s_0:
+  name: agent3
+    q_s_0:
+    p_l_0:
+    p_mf_0:
+    q_s_dot_0:
+    u_s_0:
+
