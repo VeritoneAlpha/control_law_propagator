@@ -109,32 +109,25 @@ if __name__ == "__main__":
     f.close()
 
     # put values from each agent into the blackboard
-    bb.q_p_u_dict=initCDIModelInfo.bbValues
+    bb.q_p_u_dict = initCDIModelInfo['bbValues']
+ 
+    # initialize agent, and populate its values using values in config
+    state_indices=initCDIModelInfo['agentParam']['state_indices']
+    control_indices=initCDIModelInfo['agentParam']['control_indices']
 
+    q_s_0 = np.array(initCDIModelInfo['agentParam']['q_s_0'])
+    p_l_0 = np.array(initCDIModelInfo['agentParam']['p_l_0'])
+    p_mf_0 = np.array(initCDIModelInfo['agentParam']['p_mf_0'])
+    u_s_0 = np.array(initCDIModelInfo['agentParam']['u_s_0'])
+    q_s_dot_0 = np.array(initCDIModelInfo['agentParam']['q_s_dot_0'])
+ 
+    agent = Agent1(bb, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10) 
+   
     ### initiate current time
     tc = tstart
     
-    while tc < tend:    
-        if tc == tstart:
-            # TODO: get config name from arguments?
-            configfilename = 'cdi_config_agent1.yml'
-            with open(configfilename, 'r') as f:
-                 
-                yaml.dump(initecmodelinfo, f, default_flow_style=false)
-            # close opend file
-            f.close()
-        else:
-            initecmodelflag = false
-        # get all initial values from blackboard
-        # TODO: think about how to get sensory data from blackboard for an agent
-        # create the Agent object using those values
-        # Read from blackboard to get the following observations measured at time t_0
-        q_s_0, q_s_dot_0, u_s_0 = construct_local_vectors(sliding_window_instance)
-        q_mf, q_mf_dot, u_mf = construct_mf_vectors(sliding_window_instance)
-        
-        agent = Agent(blackboard, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10)
-        # call sliding_window() on the agent
+    while tc < tend:
         q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, windows = sliding_window(agent)
-        
-        # report those values to the blackboard 
+        # increment tc, etc
+    
 
