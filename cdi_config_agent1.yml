@@ -1,7 +1,11 @@
 agentParam:
   name: agent1
-  state_dim: 1
-  control_indices: 1
+  state_dim: 2
+  state_indices: 
+    - 1
+    - 2
+  control_indices: 
+    - 1
   q_s_0: 0
   p_l_0: 0 
   p_mf_0: 0
@@ -20,13 +24,13 @@ bbParam:
   name: agent2
     q_s_0: 0.0
     p_l_0: 0.0
-    p_mf_0:
+    p_mf_0: 0.0
     q_s_dot_0:
-    u_s_0:
+    u_s_0: 0.0
   name: agent3
-    q_s_0:
-    p_l_0:
-    p_mf_0:
-    q_s_dot_0:
-    u_s_0:
+    q_s_0: 0.0
+    p_l_0: 0.0
+    p_mf_0: 0.0
+    q_s_dot_0: 0.0
+    u_s_0: 0.0
 
