@@ -99,16 +99,25 @@ def sliding_window(sliding_window_instance):
    
 
 if __name__ == "__main__":
-  
-    # test demo-2 battery customized edge controller for several iterations
+    # initialize blackboard
+    bb = Blackboard()
+    
+    # read in config 
+    configFileName = 'cdi_config_agent1.yml'
+    with open(configFileName, 'r') as f:
+        initCDIModelInfo = yaml.safe_load(f)
+    f.close()
+
+    # put values from each agent into the blackboard
+    bb.q_p_u_dict=initCDIModelInfo.bbValues
+
     ### initiate current time
     tc = tstart
     
     while tc < tend:    
-        # read in config if first time
         if tc == tstart:
             # TODO: get config name from arguments?
-            configfilename = 'cdi_config_template.yml'
+            configfilename = 'cdi_config_agent1.yml'
             with open(configfilename, 'r') as f:
                  
                 yaml.dump(initecmodelinfo, f, default_flow_style=false)
@@ -119,6 +128,10 @@ if __name__ == "__main__":
         # get all initial values from blackboard
         # TODO: think about how to get sensory data from blackboard for an agent
         # create the Agent object using those values
+        # Read from blackboard to get the following observations measured at time t_0
+        q_s_0, q_s_dot_0, u_s_0 = construct_local_vectors(sliding_window_instance)
+        q_mf, q_mf_dot, u_mf = construct_mf_vectors(sliding_window_instance)
+        
         agent = Agent(blackboard, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10)
         # call sliding_window() on the agent
         q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, windows = sliding_window(agent)
