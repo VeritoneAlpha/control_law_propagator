@@ -5,7 +5,7 @@ import numpy as np
 import scipy as sp
 import ode
 from numerical_propagator import *
-from  blackboard import *
+from blackboard import *
 
 
 class Synchronizer:
@@ -14,11 +14,11 @@ class Synchronizer:
         self.agents = agents  # list of all agents. list with elements of class Agent
         self.bb = blackboard  # instance of class blackboard
         
-        for agent in agents:
+        for agent in self.agents:
             self.bb.update_q_p_u_dict(agent)
             
         # add Synchronizer as to each agent
-        for agent in agents:
+        for agent in self.agents:
             agent.sync = self
     
     def synchronize(self):
