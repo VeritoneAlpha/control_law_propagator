@@ -96,7 +96,7 @@ def sliding_window(sliding_window_instance):
     bb.save_bar_values(sliding_window_instance, q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, q_ls_dot_bars, p_ls_dot_bars, p_mfs_dot_bars, u_dot_bars) # these eventually need to go to simulink and MATLAB interface
     
     return q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, windows
-   
+ 
 
 if __name__ == "__main__":
     # initialize blackboard
@@ -123,6 +123,7 @@ if __name__ == "__main__":
  
     agent = Agent1(bb, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10) 
    
+    q_ls_bars, p_ls_bars, p_mfs_bars, u_bars, windows = sliding_window(agent)
     ### initiate current time
     tc = tstart
     
