@@ -1,12 +1,14 @@
 # Jordan Makansi
 # 12/13/18
 
-
+# python library imports
 import yaml
 
+# internal imports
 # import the files where the Agent classes are defined
 # for now, use the testing agents but in the future use actual agent files
 from agents_for_testing import *
+from numerical_propagator import *
 
 
 def sliding_window(sliding_window_instance):

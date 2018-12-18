@@ -171,7 +171,7 @@ class Agent1:
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
         
-        qp_rhs_H_mf = self.qp_rhs_H_mf(q_mf, p_mf, u_mf)
+        qp_rhs_H_mf = self.qp_rhs_H_mf(q_mf, p_mf, u_mf, u_s)
         q_rhs_H_mf = qp_rhs_H_mf[:state_dim]
         p_rhs_H_mf = qp_rhs_H_mf[state_dim:]
 
@@ -245,7 +245,7 @@ class Agent1:
     def H_MF_u_2(self, q_mf, p_mf):
         return q_mf[1]
         
-    def qp_rhs_H_mf(self, q_mf, p_mf, u_s):
+    def qp_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
         # remember that we want to propagate as much as possible together in the same rhs function for numerical purposes
         # remember that q_rhs here is w.r.t p_mf but p_rhs here is w.r.t q_s
         q_H_mf_dot = self.p_rhs_H_mf(q_mf, p_mf, u_mf, u_s)
@@ -855,12 +855,12 @@ class Agent3:
     def q_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
         # q_rhs_H_mf is the derivative wrt each of the local variables, so it will return something of dimension state_dim
         # q_rhs_H_mf_u returns the partial derivatives wrt each control, concatenated together
-        q_rhs_H_mf_u = self.q_rhs_H_mf_u(q_mf, p_mf, u_mf)
+        q_rhs_H_mf_u = self.q_rhs_H_mf_u(q_mf, p_mf)
         assert np.shape(q_rhs_H_mf_u)==(len(self.control_indices), self.state_dim) # first dimension should be number of controls, inner dimension should be state_dim
         q_rhs_H_mf_u_summed = sum([q_rhs_H_mf_u[i]*u_s[i] for i in range(len(u_s))])
         return self.q_rhs_H_mf_nou(q_mf, p_mf) + q_rhs_H_mf_u_summed
         
-    def q_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
+    def q_rhs_H_mf_u(self, q_mf, p_mf):
         # this method is will return a concatenation of all of the partial derivatives for each of the controls
         # each of the partial derivatives is of dimension state_dim
         # this means that this method will return a 2D array:
