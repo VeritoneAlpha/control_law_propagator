@@ -121,6 +121,7 @@ if __name__ == "__main__":
     p_l_0 = np.array(initCDIModelInfo['agentParam']['p_l_0'])
     p_mf_0 = np.array(initCDIModelInfo['agentParam']['p_mf_0'])
     u_s_0 = np.array(initCDIModelInfo['agentParam']['u_s_0'])
+    import pdb; pdb.set_trace()
     q_s_dot_0 = np.array(initCDIModelInfo['agentParam']['q_s_dot_0'])
  
     agent = Agent1(bb, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10) 
