@@ -120,6 +120,8 @@ class Agent1:
         return 1
 
     def p_rhs_H_l_nou(self, q_s, p_l, lambda_l):
+        #lambda_lprint 'this should be 1D: of dimension state_dim,'
+        #lambda_limport pdb; pdb.set_trace()
         return np.array(p_l)
     
     def q_rhs_H_l_nou(self, q_s, p_l, lambda_l):
@@ -144,7 +146,7 @@ class Agent1:
         return np.ones((1,self.state_dim))
     
     def p_rhs_H_l_u(self, q_s, p_l):
-        return np.array(p_l)
+        return np.array([p_l])
     
     def q_rhs_H_l_u(self, q_s, p_l):
         return np.array([p_l])
@@ -173,7 +175,7 @@ class Agent1:
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
-        
+        import pdb; pdb.set_trace() 
         qp_rhs_H_mf = self.qp_rhs_H_mf(q_mf, p_mf, u_mf, u_s)
         q_rhs_H_mf = qp_rhs_H_mf[:state_dim]
         p_rhs_H_mf = qp_rhs_H_mf[state_dim:]
@@ -407,9 +409,8 @@ class Agent2(object):
         return np.array([0])
 
     def q_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
-        q_rhs_H_l_u = self.q_rhs_H_l_u(q_s, p_l)
-        q_rhs_H_l_u_summed = sum([q_rhs_H_l_u[i]*u_s[i] for i in range(len(u_s))])
-        return self.q_rhs_H_l_nou(q_s, p_l, lambda_l) + q_rhs_H_l_u_summed
+        q_rhs_H_l_nou = self.q_rhs_H_l_nou(q_s, p_l, lambda_l) 
+        return q_rhs_H_l_nou + np.dot(self.q_rhs_H_l_u(q_s, p_l), u_s)
 
     def qp_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
         # TODO: there is one lambda_l per constraint. need to work out dimensions.
@@ -428,9 +429,9 @@ class Agent2(object):
         return q_rhs_H_l_nou
     
     def p_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
-        p_rhs_H_l_u = self.p_rhs_H_l_u(q_s, p_l)
-        p_rhs_H_l_u_summed = sum([p_rhs_H_l_u[i]*u_s[i] for i in range(len(u_s))])
-        return self.p_rhs_H_l_nou(q_s, p_l, lambda_l) + p_rhs_H_l_u_summed
+        import pdb; pdb.set_trace()
+        p_rhs_H_l_nou =self.p_rhs_H_l_nou(q_s, p_l, lambda_l) 
+        return p_rhs_H_l_nou + np.dot(self.p_rhs_H_l_u(q_s, p_l), u_s)
 
     def p_rhs_H_l_u(self, q_s, p_l):
         # this must be 2D array, so wrap it in np.array
@@ -731,12 +732,11 @@ class Agent3:
         return q_rhs_H_l_nou
     
     def p_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
-        p_rhs_H_l_u = self.p_rhs_H_l_u(q_s, p_l)
-        p_rhs_H_l_u_summed = sum([p_rhs_H_l_u[i]*u_s[i] for i in range(len(u_s))])
-        return self.p_rhs_H_l_nou(q_s, p_l, lambda_l) + p_rhs_H_l_u_summed
+        p_rhs_H_l_nou= self.p_rhs_H_l_nou(q_s, p_l, lambda_l) 
+        return p_rhs_H_l_nou + np.dot(self.p_rhs_H_l_u(q_s, p_l), u_s)
 
     def p_rhs_H_l_u(self, q_s, p_l):
-        # this must be 2D array, so wrap it in np.array
+        # this must be 2D array, of dimension control_dim x state_dim, so wrap it in np.array
         p_rhs_H_l_u = np.array([q_s, q_s])
         return p_rhs_H_l_u
     
