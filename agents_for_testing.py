@@ -128,7 +128,7 @@ class Agent1:
     # There should be one of these defined for each control variable
 
     def H_l_u(self, q_s, p_s):
-        return 1
+        return np.array([1, 1])
 
     def H_l_u_1(self, q_s, p_s):
         return 1
@@ -147,7 +147,7 @@ class Agent1:
         return np.array(p_l)
     
     def q_rhs_H_l_u(self, q_s, p_l):
-        return np.array(p_l)
+        return np.array([p_l])
     
     def H_l_D(self, q_lD, p_lD):
         return np.array(q_lD).dot(p_lD)
