@@ -232,12 +232,12 @@ class Agent1:
         # Shen has u_mf in the flow chart
         return 1
 
-    def H_MF_u(self, q_mf, p_mf, u_mf):
+    def H_MF_u(self, q_mf, p_mf):
         # q_s, u_mf are vectors for ALL of the states, and controls
         # p_mf is a vector for ONLY the local states/costates
         # length of u_s must match number of terms here
         # some of the elements in u_s are quenched
-        return self.H_MF_u_1(q_s, p_mf, u_s)*u_mf[0] + self.H_MF_u_2(q_s, p_mf, u_mf)*u_mf[1]
+        return self.H_MF_u_1(q_s, p_mf)*u_mf[0] + self.H_MF_u_2(q_s, p_mf)*u_mf[1]
 
     def H_MF_u_1(self, q_mf, p_mf):
         return q_mf[0]*q_mf[1]
@@ -260,7 +260,7 @@ class Agent1:
         q_rhs_H_mf_u_summed = sum([q_rhs_H_mf_u[i]*u_s[i] for i in range(len(u_s))])
         return self.q_rhs_H_mf_nou(q_mf, p_mf) + q_rhs_H_mf_u_summed
         
-    def q_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
+    def q_rhs_H_mf_u(self, q_mf, p_mf):
         # should return something of dimension 
         p_H_mf_u_dot_1 =  p_mf # or something
         return np.array([p_H_mf_u_dot_1])
@@ -278,7 +278,7 @@ class Agent1:
     def q_rhs_H_mf_nou(self, q_mf, p_mf):
         return p_mf
 
-    def p_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
+    def p_rhs_H_mf_u(self, q_mf, p_mf):
         q_H_mf_u_dot = p_mf
         return np.array([q_H_mf_u_dot])
 
@@ -528,7 +528,7 @@ class Agent2(object):
 
 
     ## Mean Field methods
-    def H_MF_nou(self, q_mf, p_mf, u_mf):
+    def H_MF_nou(self, q_mf, p_mf):
         return 1
 
     def H_MF_u(self, q_mf, p_mf):
@@ -552,25 +552,25 @@ class Agent2(object):
     def q_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
         # q_rhs_H_mf is the derivative wrt each of the local variables, so it will return something of dimension state_dim
         # q_rhs_H_mf_u returns the partial derivatives wrt each control, concatenated together
-        q_rhs_H_mf_u = self.q_rhs_H_mf_u(q_mf, p_mf, u_mf)
+        q_rhs_H_mf_u = self.q_rhs_H_mf_u(q_mf, p_mf)
         assert np.shape(q_rhs_H_mf_u)==(len(self.control_indices), self.state_dim) # first dimension should be number of controls, inner dimension should be state_dim
         q_rhs_H_mf_u_summed = sum([q_rhs_H_mf_u[i]*u_s[i] for i in range(len(u_s))])
         return self.q_rhs_H_mf_nou(q_mf, p_mf) + q_rhs_H_mf_u_summed
         
-    def q_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
+    def q_rhs_H_mf_u(self, q_mf, p_mf):
         # this method is will return a concatenation of all of the partial derivatives for each of the controls
         # each of the partial derivatives is of dimension state_dim
         # this means that this method will return a 2D array:
         #    - first dimension is the index of the control
         #    - second dimension is the index of the state
         p_H_mf_u_dot_1 = p_mf # must be of dimension state_dim
-        q_rhs_H_mf_u = np.array([p_H_mf_u_dot_1])
+        q_rhs_H_mf_u = np.array([p_H_mf_u_dot_1]) # since control_dim is 1 here, just wrap in an array
         return q_rhs_H_mf_u
 
     def p_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
         # q_rhs_H_mf is the derivative wrt each of the local variables, so it will return something of dimension state_dim
         # q_rhs_H_mf_u returns the partial derivatives wrt each control, concatenated together
-        p_rhs_H_mf_u = self.p_rhs_H_mf_u(q_mf, p_mf, u_mf)
+        p_rhs_H_mf_u = self.p_rhs_H_mf_u(q_mf, p_mf)
         p_rhs_H_mf_u_summed = sum([p_rhs_H_mf_u[i]*u_s[i] for i in range(len(u_s))])
         return self.p_rhs_H_mf_nou(q_mf, p_mf) + p_rhs_H_mf_u_summed
         
@@ -580,7 +580,7 @@ class Agent2(object):
     def q_rhs_H_mf_nou(self, q_mf, p_mf):
         return  p_mf
 
-    def p_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
+    def p_rhs_H_mf_u(self, q_mf, p_mf):
         q_H_mf_u_dot = p_mf
         return np.array([q_H_mf_u_dot])
 
@@ -831,7 +831,7 @@ class Agent3:
 
 
     ## Mean Field methods
-    def H_MF_nou(self, q_mf, p_mf, u_mf):
+    def H_MF_nou(self, q_mf, p_mf):
         return 1
 
     def H_MF_u(self, q_mf, p_mf):
@@ -860,7 +860,7 @@ class Agent3:
         q_rhs_H_mf_u_summed = sum([q_rhs_H_mf_u[i]*u_s[i] for i in range(len(u_s))])
         return self.q_rhs_H_mf_nou(q_mf, p_mf) + q_rhs_H_mf_u_summed
         
-    def q_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
+    def q_rhs_H_mf_u(self, q_mf, p_mf):
         # this method is will return a concatenation of all of the partial derivatives for each of the controls
         # each of the partial derivatives is of dimension state_dim
         # this means that this method will return a 2D array:
@@ -883,7 +883,7 @@ class Agent3:
     def q_rhs_H_mf_nou(self, q_mf, p_mf):
         return  p_mf
 
-    def p_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
+    def p_rhs_H_mf_u(self, q_mf, p_mf):
         q_H_mf_u_dot = p_mf
         return np.array([q_H_mf_u_dot, q_H_mf_u_dot])
 
@@ -1145,7 +1145,7 @@ class Agent4(Agent2):
 #        q_rhs_H_mf_u_summed = sum([q_rhs_H_mf_u[i]*u_s[i] for i in range(len(u_s))])
 #        return self.q_rhs_H_mf_nou(q_mf, p_mf) + q_rhs_H_mf_u_summed
         
-    def q_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
+    def q_rhs_H_mf_u(self, q_mf, p_mf):
         # this method is will return a concatenation of all of the partial derivatives for each of the controls
         # each of the partial derivatives is of dimension state_dim
         # this means that this method will return a 2D array:
@@ -1168,7 +1168,7 @@ class Agent4(Agent2):
 #    def q_rhs_H_mf_nou(self, q_mf, p_mf):
 #        return  p_mf
 
-    def p_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
+    def p_rhs_H_mf_u(self, q_mf, p_mf):
         q_H_mf_u_dot = p_mf
         return np.array([q_H_mf_u_dot, q_H_mf_u_dot])
 

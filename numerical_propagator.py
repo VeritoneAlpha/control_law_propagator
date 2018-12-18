@@ -323,8 +323,8 @@ def Betas(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l):
         Beta_l_j=np.array([])
         for k in range(len(self.control_indices)):
             # recall self.q_rhs_H_mf_u() returns a 2D np.array of size control_dim x state_dim, so self.q_rhs_H_mf_u()[k] is actually a 1D np.array
-            Beta_mf_k = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], p_mf_dot)) + \
-                        H_mf_u[k]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
+            Beta_mf_k = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf)[k], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf)[k], p_mf_dot)) + \
+                        H_mf_u[k]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf)[j], p_mf_dot))
             Beta_l_k = H_l_u[j]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[k], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[k], p_mf_dot)) + \
                        H_l_u[k]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_mf_dot))
     
@@ -339,13 +339,13 @@ def alphas(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H
     alpha_mf=[]
     alpha_l=[]
     for j in range(self.control_dim):
+        lambda_l=0
         H_mf_u = self.H_MF_u(q_mf, p_mf)
         H_l_u = self.H_l_u(q_s, p_l)
-        H_mf_nou = self.H_MF_nou(q_mf, p_mf, u_mf)
-        H_l_nou = self.H_l_nou(q_mf, p_mf, u_mf)
-        lambda_l=0
+        H_mf_nou = self.H_MF_nou(q_mf, p_mf)
+        H_l_nou = self.H_l_nou(q_mf, p_mf, lambda_l)
         alpha_mf_j = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_nou(p_mf, q_mf), q_s_dot) + np.dot(self.p_rhs_H_mf_nou(p_mf, q_mf), p_mf_dot)) +\
-                        (H_mf_nou-H_l_D)*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
+                        (H_mf_nou-H_l_D)*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf)[j], p_mf_dot))
     
         alpha_l_j = H_l_u[j]*(np.dot(self.q_rhs_H_l_nou(q_s, p_l, lambda_l), q_s_dot) + np.dot(self.p_rhs_H_l_nou(q_s, p_l, lambda_l), p_l_dot)) +\
                         (H_l_nou-H_l_D)*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_l_dot))
