@@ -193,10 +193,9 @@ class Agent1:
         return np.concatenate([q_s_dot, p_l_dot, p_mf_dot])
     
     def qp_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
-        import pdb; pdb.set_trace()
         #TODO: there is one lambda_l per constraint. need to work out dimensions.
-        q_rhs_H_l = self.q_rhs_H_l_nou(q_s, p_l, lambda_l) + sum([self.q_rhs_H_l_u(q_s, p_l)*u_s_i for u_s_i in u_s])
-        p_rhs_H_l = self.p_rhs_H_l_nou(q_s, p_l, lambda_l) + sum([self.p_rhs_H_l_u(q_s, p_l)*u_s_i for u_s_i in u_s])
+        q_rhs_H_l = self.q_rhs_H_l_nou(q_s, p_l, lambda_l) + np.dot(self.q_rhs_H_l_u(q_s, p_l).T, u_s)
+        p_rhs_H_l = self.p_rhs_H_l_nou(q_s, p_l, lambda_l) + np.dot(self.p_rhs_H_l_u(q_s, p_l).T, u_s)
         return np.concatenate([q_rhs_H_l, p_rhs_H_l])
 
 
@@ -281,10 +280,12 @@ class Agent1:
         return self.p_rhs_H_mf_nou(q_mf, p_mf) + p_rhs_H_mf_u_summed
         
     def p_rhs_H_mf_nou(self, q_mf, p_mf):
+        # should return something of same dimension as q_mf
         return p_mf # or something
 
     def q_rhs_H_mf_nou(self, q_mf, p_mf):
-        return p_mf
+        p_H_mf_u_dot = p_mf
+        return p_H_mf_u_dot
 
     def p_rhs_H_mf_u(self, q_mf, p_mf):
         q_H_mf_u_dot = p_mf
