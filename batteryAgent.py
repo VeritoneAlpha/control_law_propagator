@@ -27,12 +27,12 @@ class batteryAgent:
         self.bb = blackboard
  
 
-    def L_l(self, q_1_t, q_B_t, q_1_t_dot, q_B_t_dot, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, A_0, beta, v_N):
+    def L_l(self, q_1, q_B, q_1_dot, q_B_dot, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         '''
         Inputs:
             states:
-                q_1_t: charge 1 at time t
-                q_B_t: charge of battery at time t
+                q_1: charge 1 at time t
+                q_B: charge of battery at time t
             control:
                 u_B: control of battery
             data:
@@ -45,21 +45,22 @@ class batteryAgent:
                 R_0:
                 R_1:
                 v_a:
-                A_0:
+                Q_0:
                 beta:
                 v_N:
         '''
         # TODO: replace as a function of self.K and self.T
         delta = 1
 
-        V_c_1 = -(c_1/2.0)*((((q_1_t - q_1_0)/c_1) + v_c_1_0)**2 - V_c_1_0)
-        V_c_u = -0.5*(u_B*(-(q_B - q_B_0))**2+2*(-(q_B - q_B_0)*V_c_u_0))
-        D_R_0 = 0.5*(-q_B_dot**2)*R_0*delta + 0.5*((-q_B_dot - q_1_dot)**2)*R_1*delta
-        D_R_1 = 
-        F_B
-        F_B_out
+        V_c_1 = (c_1/2.0)*((((q_1 - q_1_0)/c_1) + v_c_1_0)**2 - V_c_1_0)
+        V_c_u = 0.5*(u_B*(-(q_B - q_B_0))**2+2*(-(q_B - q_B_0)*V_c_u_0))
+        D_R_0 = 0.5*(-q_B_dot**2)*R_0*delta  
+        D_R_1 = 0.5*((-q_B_dot - q_1_dot)**2)*R_1*delta
+        F_B = -(v_N/beta**2)*(beta*q_B - beta*q_B_0 + (Q_0*beta - Q_0)*np.log( (Q_0 - Q_0*beta + beta*q_B) / (Q_0 - Q_0*beta + beta*q_B_0)))
+        F_B_out = -(q_B - q_B_0)*v_a
+
         L_l = -V_c_1 - V_c_u + D_R_0 + D_R_1 + F_B - F_B_out
+        return  L_l
         
-        pass
 
     def 
