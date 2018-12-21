@@ -131,5 +131,15 @@ class batteryAgent:
         p_rhs_H_l = self.p_rhs_H_l(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         return np.concatenate([q_rhs_H_l, p_rhs_H_l])
 
+    def qp_rhs(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
 
+    def H_D(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N, q_1_prev, q_B_prev, v_c_1_prev, v_c_u_prev):
+        term_1 = 0.5*((p_B - p_1)/(R_0*delta)) + 0.5*((p_1)**2)/(R_1*delta) 
+        term_2 = (c_1/2)*((((q_1 - q_1_prev)/c_1) + v_c_1_prev)**2 - (v_c_1**2))
+        term_3 = 0.5*(u_B*(-(q_B - q_B_prev)**2)+2*(-(q_B-q_B_prev)*v_c_u_prev))
+        term_4 = (v_N/(beta**2))*(beta*q_B - beta*q_B_prev + (Q_0*beta - Q_0)*np.log((Q_0 - Q_0*beta + beta*q_B)/(Q_0 - Q_0*beta + beta*q_B_prev)))
+        term_5 = -(q_B - q_B_prev)*v_a
+        H_D = term_1 + term_2 + term_3 + term_4 + term_5
+        return H_D
+        
 
