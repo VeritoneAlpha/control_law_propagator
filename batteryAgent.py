@@ -73,7 +73,7 @@ class batteryAgent:
     def H_l_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         # TODO: replace as a function of self.K and self.T
         delta = 1
-        term_1 = 0.5*(((p_B-p_1)**2)/(R_0 * delta)) + 0.5*((p_1**2)/(R_1*delta)) 
+        term_1 = 0.5*(((p_B-p_1)**2)/(R_0 * delta)) + 0.5*((p_1**2)/(R_1*delta))
         term_2 = (c_1/2)*((((q_1-q_1_0)/c_1) + v_c_1_0)**2 - v_c_1_0**2) 
         term_3 = (-(q_B - q_B_0)*v_c_u_0) 
         term_4 =  (v_N/beta)*(beta*q_B - beta*q_B_0 +(Q_0*beta - Q_0)*np.log( (Q_0 - Q_0*beta + beta*q_B) / (Q_0 - Q_0*beta + beta*q_B_0)))
@@ -106,7 +106,7 @@ class batteryAgent:
         q_1_rhs_H_l_u = 0
         q_B_rhs_H_l_u = q_B - q_B_0
         q_rhs_H_l_u = np.concatenate([np.array([q_1_rhs_H_l_u]), np.array([q_B_rhs_H_l_u])])
-        return q_rhs_H_l_u
+        return np.array([q_rhs_H_l_u])
 
     def p_rhs_H_l_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         # TODO: replace as a function of self.K and self.T
@@ -114,12 +114,22 @@ class batteryAgent:
         p_1_rhs_H_l_u = 0
         p_B_rhs_H_l_u = 0
         p_rhs_H_l_u = np.concatenate([np.array([p_1_rhs_H_l_u]), np.array([p_B_rhs_H_l_u])])
-        return p_rhs_H_l_u
-    # NOT DONE YET
-    #def qp_rhs_H_l(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
-    #    q_rhs_H_l = self.q_rhs_H_l_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + np.concatenate([self.q_rhs_H_l(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N), u_B])
-    #    p_rhs_H_l = self.p_rhs_H_l_nou(q_s, p_l, lambda_l)
-    #    return np.concatenate([q_rhs_H_l, p_rhs_H_l])
+        return np.array([p_rhs_H_l_u])
+
+    def q_rhs_H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        q_rhs_H_l = self.q_rhs_H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + np.dot(self.q_rhs_H_l_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N).T, np.array([u_B]))
+        # should return something of dimension state_dim 
+        return q_rhs_H_l
+
+    def p_rhs_H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        p_rhs_H_l = self.p_rhs_H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + np.dot(self.p_rhs_H_l_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N).T, np.array([u_B]))
+        # should return something of dimension state_dim 
+        return p_rhs_H_l
+
+    def qp_rhs_H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        q_rhs_H_l = self.q_rhs_H_l( q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        p_rhs_H_l = self.p_rhs_H_l(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        return np.concatenate([q_rhs_H_l, p_rhs_H_l])
 
 
 
