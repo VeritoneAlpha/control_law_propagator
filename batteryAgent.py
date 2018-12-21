@@ -100,6 +100,26 @@ class batteryAgent:
         p_rhs_H_l_nou = np.concatenate([np.array([p_1_rhs_H_l_nou]), np.array([p_B_rhs_H_l_nou])])
         return p_rhs_H_l_nou
 
-    #def 
-    #    q_B_rhs_H_l_nou = q_B - q_B_0
+    def q_rhs_H_l_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
+        q_1_rhs_H_l_u = 0
+        q_B_rhs_H_l_u = q_B - q_B_0
+        q_rhs_H_l_u = np.concatenate([np.array([q_1_rhs_H_l_u]), np.array([q_B_rhs_H_l_u])])
+        return q_rhs_H_l_u
+
+    def p_rhs_H_l_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
+        p_1_rhs_H_l_u = 0
+        p_B_rhs_H_l_u = 0
+        p_rhs_H_l_u = np.concatenate([np.array([p_1_rhs_H_l_u]), np.array([p_B_rhs_H_l_u])])
+        return p_rhs_H_l_u
+    # NOT DONE YET
+    #def qp_rhs_H_l(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    #    q_rhs_H_l = self.q_rhs_H_l_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + np.concatenate([self.q_rhs_H_l(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N), u_B])
+    #    p_rhs_H_l = self.p_rhs_H_l_nou(q_s, p_l, lambda_l)
+    #    return np.concatenate([q_rhs_H_l, p_rhs_H_l])
+
+
 
