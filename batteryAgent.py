@@ -84,5 +84,22 @@ class batteryAgent:
         term_1 = 0.5*(-(q_B - q_B_0))**2 
         return term_1
 
+    def q_rhs_H_l_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
+        q_1_rhs_H_l_nou = (q_1 - q_1_0)/c_1 + v_c_1_0
+        q_B_rhs_H_l_nou = -v_c_u_0 - v_a + (v_N/beta) + (v_N*Q_0*(beta-1))/(beta*(Q_0 - Q_0*beta + beta*q_B))
+        q_rhs_H_l_nou = np.concatenate([np.array([q_1_rhs_H_l_nou]), np.array([q_B_rhs_H_l_nou])])
+        return q_rhs_H_l_nou
 
+    def p_rhs_H_l_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
+        p_1_rhs_H_l_nou = -p_B/(R_0*delta) + (p_1/delta)*((1/R_0)+(1/R_1))
+        p_B_rhs_H_l_nou = (p_B - p_1)/(R_0*delta)
+        p_rhs_H_l_nou = np.concatenate([np.array([p_1_rhs_H_l_nou]), np.array([p_B_rhs_H_l_nou])])
+        return p_rhs_H_l_nou
+
+    #def 
+    #    q_B_rhs_H_l_nou = q_B - q_B_0
 
