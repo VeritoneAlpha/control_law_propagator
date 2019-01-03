@@ -24,10 +24,12 @@ class batteryAgent:
             - If it is a hamiltonian: H_<type of hamiltonian (l, mf, or s)>_<nou or u>.  e.g. "H_mf_nou" denotes the mean field hamiltonian with terms not containing u.
         '''
         self.state_indices = state_indices
+        self.state_dim = len(self.state_indices)
         self.control_indices = control_indices
+        self.control_dim = len(self.control_indices)
         self.bb = blackboard
  
-
+    # local methods
     def L_l(self, q_1, q_B, q_1_dot, q_B_dot, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
     #def L_l(self, q_s, q_s_dot, u_s, **kwargs) :
         '''
@@ -132,15 +134,68 @@ class batteryAgent:
         p_rhs_H_l = self.p_rhs_H_l(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         return np.concatenate([q_rhs_H_l, p_rhs_H_l])
 
+    # Mean Field methods
+    def H_mf_nou(self, q_mf, p_mf, u_mf):
+    #...other methods for mean field 
+        pass
+
+    def q_rhs_H_mf_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # should return 2D numpy array of dimension control_dim x state_dim
+        # TODO: Change to actual mean field.  For now just use local functions.
+        p_H_mf_u_dot_1 = self.p_rhs_H_l_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        # Normally, we would wrap this in a numpy array like np.array([p_H_mf_u_dot_1]), but since we are stealing from local in this case it is not necessary
+        return p_H_mf_u_dot_1
+
+    def p_rhs_H_mf_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # should return 2D numpy array of dimension control_dim x state_dim
+        # TODO: Change to actual mean field.  For now just use local functions.
+        q_H_mf_u_dot_1 = self.q_rhs_H_l_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        return q_H_mf_u_dot_1
+
+    def q_rhs_H_mf_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # should return 1D numpy array of dimension 1 x state_dim
+        # TODO: Change to actual mean field.  For now just use local functions.
+        p_H_mf_u_dot_1 = self.p_rhs_H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        return p_H_mf_u_dot_1
+
+    def p_rhs_H_mf_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # should return 1D numpy array of dimension 1 x state_dim
+        # TODO: Change to actual mean field.  For now just use local functions.
+        q_H_mf_u_dot_1 = self.q_rhs_H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        return q_H_mf_u_dot_1
+
+    def p_rhs_H_mf(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # q_rhs_H_mf is the derivative wrt each of the local variables, so it will return something of dimension state_dim # q_rhs_H_mf_u returns the partial derivatives wrt each control, concatenated together
+        p_rhs_H_mf_u = self.p_rhs_H_mf_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        assert np.shape(p_rhs_H_mf_u)==(len(self.control_indices), self.state_dim) # first dimension should be number of controls, inner dimension should be state_dim
+        # since only one control, no need for dot product here
+        p_rhs_H_mf_u_summed = p_rhs_H_mf_u*u_B
+        return self.p_rhs_H_mf_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + p_rhs_H_mf_u_summed
+
+    def q_rhs_H_mf(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # q_rhs_H_mf is the derivative wrt each of the local variables, so it will return something of dimension state_dim
+        # q_rhs_H_mf_u returns the partial derivatives wrt each control, concatenated together
+        q_rhs_H_mf_u = self.q_rhs_H_mf_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        assert np.shape(q_rhs_H_mf_u)==(len(self.control_indices), self.state_dim) # first dimension should be number of controls, inner dimension should be state_dim
+        q_rhs_H_mf_u_summed = q_rhs_H_mf_u*u_B
+        return self.q_rhs_H_mf_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + q_rhs_H_mf_u_summed
+
+    def qp_rhs_H_mf(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        # remember that we want to propagate as much as possible together in the same rhs function for numerical purposes
+        # remember that q_rhs here is w.r.t p_mf but p_rhs here is w.r.t q_s
+        q_H_mf_dot = self.p_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        p_H_mf_dot = self.q_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        return np.concatenate([q_H_mf_dot, p_H_mf_dot])
+
     def qp_rhs(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
  
         qp_rhs_H_l = self.qp_rhs_H_l(q_s, p_l, u_s, lambda_l)
         q_rhs_H_l = qp_rhs_H_l[:state_dim]
         p_rhs_H_l = qp_rhs_H_l[state_dim:]
 
-        q_s_dot = 
-        p_l_dot = -1*q_rhs_H_l
-        p_mf_dot =  
+        #q_s_dot =  
+        #p_l_dot = -1*q_rhs_H_l
+        #p_mf_dot =  
         return np.concatenate([q_s_dot, p_l_dot, p_mf_dot])
  
 
