@@ -170,7 +170,7 @@ class Agent1:
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
-        
+
         qp_rhs_H_mf = self.qp_rhs_H_mf(q_mf, p_mf, u_mf)
         q_rhs_H_mf = qp_rhs_H_mf[:state_dim]
         p_rhs_H_mf = qp_rhs_H_mf[state_dim:]
