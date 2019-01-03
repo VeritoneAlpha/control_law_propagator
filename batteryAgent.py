@@ -20,6 +20,7 @@ class batteryAgent:
         A word on notation:  The notation used for the methods of the agent is:  
             - If it is a partial derivative: <denominator>_rhs_H_<type of hamiltonian (l, mf, or s)>_<nou or u>.  e.g., 
             "qp_rhs_H_l_u" denotes the partial derivative with respect to q and p of the terms in the local Hamiltonian that contain control variables.
+            And p_rhs_H_mf_u denotes the partial derivative with respect to p of the terms in the mean field Hamiltonian of the terms containing "u".
             - If it is a hamiltonian: H_<type of hamiltonian (l, mf, or s)>_<nou or u>.  e.g. "H_mf_nou" denotes the mean field hamiltonian with terms not containing u.
         '''
         self.state_indices = state_indices
@@ -132,8 +133,47 @@ class batteryAgent:
         return np.concatenate([q_rhs_H_l, p_rhs_H_l])
 
     def qp_rhs(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+ 
+        qp_rhs_H_l = self.qp_rhs_H_l(q_s, p_l, u_s, lambda_l)
+        q_rhs_H_l = qp_rhs_H_l[:state_dim]
+        p_rhs_H_l = qp_rhs_H_l[state_dim:]
+
+        q_s_dot = 
+        p_l_dot = -1*q_rhs_H_l
+        p_mf_dot =  
+        return np.concatenate([q_s_dot, p_l_dot, p_mf_dot])
+ 
+
+    def qp_rhs(self, t, qp_vec, **kwargs):
+        # u_s is constant (because of causality, remember?)
+        u_s = kwargs['u_0']
+        state_dim = kwargs['state_dim']
+        q_mf = kwargs['q_mf']
+        u_mf = kwargs['u_mf']
+        
+        # TODO:  get a kwargs working for lambda_l
+        lambda_l = 0 # kwargs['lambda_l']
+        q_s = qp_vec[:state_dim]
+        p_l = qp_vec[state_dim:2*state_dim]
+        p_mf = qp_vec[2*state_dim:]
+
+        qp_rhs_H_mf = self.qp_rhs_H_mf(q_mf, p_mf, u_mf, u_s)
+        q_rhs_H_mf = qp_rhs_H_mf[:state_dim]
+        p_rhs_H_mf = qp_rhs_H_mf[state_dim:]
+        
+        qp_rhs_H_l = self.qp_rhs_H_l(q_s, p_l, u_s, lambda_l)
+        q_rhs_H_l = qp_rhs_H_l[:state_dim]
+        p_rhs_H_l = qp_rhs_H_l[state_dim:]
+
+        q_s_dot = self.gamma*p_rhs_H_mf + (1-self.gamma)*p_rhs_H_l
+        p_mf_dot = q_rhs_H_mf
+        p_l_dot = -1*q_rhs_H_l
+
+        return np.concatenate([q_s_dot, p_l_dot, p_mf_dot])
 
     def H_D(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N, q_1_prev, q_B_prev, v_c_1_prev, v_c_u_prev):
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
         term_1 = 0.5*((p_B - p_1)/(R_0*delta)) + 0.5*((p_1)**2)/(R_1*delta) 
         term_2 = (c_1/2)*((((q_1 - q_1_prev)/c_1) + v_c_1_prev)**2 - (v_c_1**2))
         term_3 = 0.5*(u_B*(-(q_B - q_B_prev)**2)+2*(-(q_B-q_B_prev)*v_c_u_prev))
