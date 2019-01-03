@@ -24,15 +24,71 @@ class batteryAgent:
             - If it is a hamiltonian: H_<type of hamiltonian (l, mf, or s)>_<nou or u>.  e.g. "H_mf_nou" denotes the mean field hamiltonian with terms not containing u.
         '''
         self.state_indices = state_indices
-        self.state_dim = len(self.state_indices)
         self.control_indices = control_indices
+        self.state_dim = len(self.state_indices)
         self.control_dim = len(self.control_indices)
         self.bb = blackboard
-        self.gamma = gamma
+        # Inputs for numerical propagator
+        # qp_vec is going to be [q_s, p_l, p_mf], so it will have dimension = 3*state_dim
+        if q_s_0==None:
+            self.q_s_0 = np.zeros((len(state_indices)))
+        else:
+            self.q_s_0 = q_s_0
+
+        if p_l_0==None:
+            self.p_l_0 = np.zeros((len(state_indices)))
+        else:
+            self.p_l_0 = p_l_0
+
+        if p_mf_0==None:
+            self.p_mf_0 = np.zeros((len(state_indices)))
+        else:
+            self.p_mf_0 = p_mf_0
+     
+        if u_s_0==None:
+            self.u_s_0 = np.zeros((len(self.control_indices)))
+        else:
+            self.u_s_0 = u_s_0
+
+        if q_s_dot==None:
+            self.q_s_dot = np.zeros((len(state_indices)))
+        else:
+            self.q_s_dot = q_s_dot
+
+        self.qpu_vec = np.hstack([self.q_s_0, self.p_l_0, self.p_mf_0, self.u_s_0])
+        self.control_dim = len(self.control_indices)
+        self.state_dim = len(self.state_indices)
+        self.Gamma = Gamma
+        self.gamma = gamma  # function is inputted by the user to compute this.
+        self.sync = None # gets filled in when Synchronizer class is initialized
+        self.name = name
+
+        # Inputs for numerical integration
+        self.integrateTol = integrateTol
+        self.integrateMaxIter = integrateMaxIter
+
+        # Inputs for sliding window
+        self.t_0 = t_0 
+        self.T = T 
+        self.K = K
+
+        self.t_terminal = t_terminal # terminate entire simulation of this agent
+        self.n_s = n_s # number of steps inside of each bucket
+
+        self.validate_dimensions()
+
+
+    def validate_dimensions(self):
+        # TODO: move to parent class "SlidingWindow"
+        assert len(self.state_indices) == self.state_dim, 'state dimensions are not consistent.  dimension of state indices is '+str(len(self.state_indices)) +' and state_dim is '+str(self.state_dim)
+        assert len(self.control_indices) == len(self.u_s_0), 'control dimensions are not consistent.  dimension of control_indices is '+str(len(self.control_indices)) +' and len(u_0) is '+str(len(self.u_s_0))
+        assert len(self.qpu_vec) == 3*self.state_dim + len(self.control_indices), ' control and state dimensions are not consistent with qpu_vec : length of qpu_vec is '+str(len(self.qpu_vec))+ ' and 3*self.state_dim + len(self.control_indices) is ' + str(3*self.state_dim + len(self.control_indices))
+    
  
     # local methods
     def L_l(self, q_1, q_B, q_1_dot, q_B_dot, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
-    #def L_l(self, q_s, q_s_dot, u_s, **kwargs) :
+    # TODO: Change notation to be consistent with Steve's document:  e.g. instead of q_B, use qb
+    #def L_l(self, q_s, q_s_dot, u_s, **kwargs):
         '''
         Inputs:
             states:
@@ -68,6 +124,11 @@ class batteryAgent:
         L_l = -V_c_1 - V_c_u + D_R_0 + D_R_1 + F_B - F_B_out
         return  L_l
 
+    def L_l_q_dot(self, q_s, q_s_dot, u_s):
+        '''
+        '''
+        q_s = [q_1, q_B], p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N
+        
 
     def H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         H_l_nou = self.H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
@@ -189,7 +250,13 @@ class batteryAgent:
         return np.concatenate([q_H_mf_dot, p_H_mf_dot])
 
     def qp_rhs(self, t, **kwargs): 
-    #if all inputs needed explicitly use def qp_rhs(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        '''if all inputs needed explicitly use def qp_rhs(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+
+        This is how we call qp_rhs:
+            qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
+            qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
+
+        '''
         q_1 = kwargs['q_1']
         q_B = kwargs['q_B']        
         p_1 = kwargs['p_1']       
