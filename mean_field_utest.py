@@ -32,6 +32,7 @@ class FunctionalityTestCase(unittest.TestCase):
         '''
         self.Agent2.n_s = 2
         ### define inputs
+
         qpu_vec = np.array([0, 2, 0, 3, 0, 1, 0])
         t_start = 0.0
         t_end = 0.25

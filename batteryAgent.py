@@ -13,7 +13,7 @@ from blackboard import *
 
 class batteryAgent:
     
-    def __init__(self, blackboard, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10):
+    def __init__(self, blackboard, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10): 
         ''' state_indices (list of integers): This list tells which states pertain to this agent. e.g. [1,2] would 
         tell us that states 1 and 2 pertain to this agent.
         
@@ -28,6 +28,7 @@ class batteryAgent:
         self.control_indices = control_indices
         self.control_dim = len(self.control_indices)
         self.bb = blackboard
+        self.gamma = gamma
  
     # local methods
     def L_l(self, q_1, q_B, q_1_dot, q_B_dot, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
@@ -169,7 +170,7 @@ class batteryAgent:
         p_rhs_H_mf_u = self.p_rhs_H_mf_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         assert np.shape(p_rhs_H_mf_u)==(len(self.control_indices), self.state_dim) # first dimension should be number of controls, inner dimension should be state_dim
         # since only one control, no need for dot product here
-        p_rhs_H_mf_u_summed = p_rhs_H_mf_u*u_B
+        p_rhs_H_mf_u_summed = np.dot(self.p_rhs_H_mf_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N).T, np.array([u_B]))        
         return self.p_rhs_H_mf_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + p_rhs_H_mf_u_summed
 
     def q_rhs_H_mf(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
@@ -177,7 +178,7 @@ class batteryAgent:
         # q_rhs_H_mf_u returns the partial derivatives wrt each control, concatenated together
         q_rhs_H_mf_u = self.q_rhs_H_mf_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         assert np.shape(q_rhs_H_mf_u)==(len(self.control_indices), self.state_dim) # first dimension should be number of controls, inner dimension should be state_dim
-        q_rhs_H_mf_u_summed = q_rhs_H_mf_u*u_B
+        q_rhs_H_mf_u_summed = np.dot(self.q_rhs_H_mf_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N).T, np.array([u_B]))        
         return self.q_rhs_H_mf_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + q_rhs_H_mf_u_summed
 
     def qp_rhs_H_mf(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
@@ -188,43 +189,23 @@ class batteryAgent:
         return np.concatenate([q_H_mf_dot, p_H_mf_dot])
 
     def qp_rhs(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        state_dim = self.state_dim
  
-        qp_rhs_H_l = self.qp_rhs_H_l(q_s, p_l, u_s, lambda_l)
-        q_rhs_H_l = qp_rhs_H_l[:state_dim]
-        p_rhs_H_l = qp_rhs_H_l[state_dim:]
+        qp_rhs_H_mf = self.qp_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
 
-        #q_s_dot =  
-        #p_l_dot = -1*q_rhs_H_l
-        #p_mf_dot =  
-        return np.concatenate([q_s_dot, p_l_dot, p_mf_dot])
- 
-
-    def qp_rhs(self, t, qp_vec, **kwargs):
-        # u_s is constant (because of causality, remember?)
-        u_s = kwargs['u_0']
-        state_dim = kwargs['state_dim']
-        q_mf = kwargs['q_mf']
-        u_mf = kwargs['u_mf']
-        
-        # TODO:  get a kwargs working for lambda_l
-        lambda_l = 0 # kwargs['lambda_l']
-        q_s = qp_vec[:state_dim]
-        p_l = qp_vec[state_dim:2*state_dim]
-        p_mf = qp_vec[2*state_dim:]
-
-        qp_rhs_H_mf = self.qp_rhs_H_mf(q_mf, p_mf, u_mf, u_s)
         q_rhs_H_mf = qp_rhs_H_mf[:state_dim]
         p_rhs_H_mf = qp_rhs_H_mf[state_dim:]
-        
-        qp_rhs_H_l = self.qp_rhs_H_l(q_s, p_l, u_s, lambda_l)
+
+        qp_rhs_H_l = self.qp_rhs_H_l(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         q_rhs_H_l = qp_rhs_H_l[:state_dim]
         p_rhs_H_l = qp_rhs_H_l[state_dim:]
 
         q_s_dot = self.gamma*p_rhs_H_mf + (1-self.gamma)*p_rhs_H_l
         p_mf_dot = q_rhs_H_mf
         p_l_dot = -1*q_rhs_H_l
-
+        
         return np.concatenate([q_s_dot, p_l_dot, p_mf_dot])
+ 
 
     def H_D(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N, q_1_prev, q_B_prev, v_c_1_prev, v_c_u_prev):
         # TODO: replace as a function of self.K and self.T
