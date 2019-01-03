@@ -188,7 +188,25 @@ class batteryAgent:
         p_H_mf_dot = self.q_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         return np.concatenate([q_H_mf_dot, p_H_mf_dot])
 
-    def qp_rhs(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def qp_rhs(self, t, **kwargs): 
+    #if all inputs needed explicitly use def qp_rhs(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+        q_1 = kwargs['q_1']
+        q_B = kwargs['q_B']        
+        p_1 = kwargs['p_1']       
+        p_B = kwargs['p_B']       
+        u_B =kwargs['u_B']        
+        q_1_0_0 = kwargs['q_1_0']       
+        q_B_0 = kwargs['q_B_0']       
+        v_c_u_0 = kwargs['v_c_u_0']       
+        v_c_1_0 = kwargs['v_c_1_0']       
+        c_1 = kwargs['c_1']       
+        R_0 = kwargs['R_0']       
+        R_1 = kwargs['R_1']       
+        v_a = kwargs['v_a']       
+        Q_0 = kwargs['Q_0']       
+        beta = kwargs['beta']       
+        v_N = kwargs['v_N']       
+ 
         state_dim = self.state_dim
  
         qp_rhs_H_mf = self.qp_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
@@ -206,6 +224,42 @@ class batteryAgent:
         
         return np.concatenate([q_s_dot, p_l_dot, p_mf_dot])
  
+
+    def u_rhs(self, t, u_vec, **kwargs):
+        u_s = kwargs['u_0']
+        state_dim = kwargs['state_dim']
+        q_mf_dot = kwargs['q_mf_dot']
+        q_s_dot = kwargs['q_s_dot']
+        p_l_dot = kwargs['p_l_dot']
+        p_mf_dot = kwargs['p_mf_dot']
+        q_mf = kwargs['q_mf']
+        u_mf = kwargs['u_mf']
+        qp_vec = kwargs['qp_vec']
+        H_l_D = kwargs['H_l_D']
+        Beta_mf = kwargs['Beta_mf']
+        Beta_l = kwargs['Beta_l']
+        alpha_mf = kwargs['alpha_mf']
+        alpha_l = kwargs['alpha_l']
+        q_s = qp_vec[:state_dim]
+        p_l = qp_vec[state_dim:2*state_dim]
+        p_mf = qp_vec[2*state_dim:]
+        u_s_dot = np.array([])
+        for j in range(self.control_dim):
+            '''for each control, we need to:
+                1) Compute and get a 1D np.array for each of alpha_l_j, etc.
+                2) Compute u_s_dot_j = -1*self.Gamma*(self.gamma*(alpha_mf_j + np.dot(Beta_mf_j, u_s)) + (1-self.gamma)*(alpha_l_j + np.dot(Beta_l_j,u_s)))
+                3) Concatenate all of the u_s_dot_j to construct u_s_dot in a 1D np.array
+            '''
+            
+            Beta_mf_j,Beta_l_j = Beta_mf[j], Beta_l[j] 
+            alpha_mf_j, alpha_l_j = alpha_mf[j], alpha_l[j]
+            # Beta_mf_j, Beta_l_j should be vectors
+            # alpha_mf_j, alpha_l_j should be scalars
+            u_s_dot_j = -1*self.Gamma*(self.gamma*(alpha_mf_j + np.dot(Beta_mf_j, u_s)) + (1-self.gamma)*(alpha_l_j + np.dot(Beta_l_j,u_s)))
+            u_s_dot=np.concatenate([u_s_dot, np.array([u_s_dot_j])])
+        
+        return u_s_dot
+
 
     def H_D(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N, q_1_prev, q_B_prev, v_c_1_prev, v_c_u_prev):
         # TODO: replace as a function of self.K and self.T
