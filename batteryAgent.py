@@ -13,7 +13,7 @@ from blackboard import *
 
 class batteryAgent:
     
-    def __init__(self, blackboard, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10): 
+    def __init__(self, blackboard, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10, **kwargs): 
         ''' state_indices (list of integers): This list tells which states pertain to this agent. e.g. [1,2] would 
         tell us that states 1 and 2 pertain to this agent.
         
@@ -75,6 +75,21 @@ class batteryAgent:
         self.t_terminal = t_terminal # terminate entire simulation of this agent
         self.n_s = n_s # number of steps inside of each bucket
 
+        # data
+        self.q_1_0 = kwargs['q_1_0']
+        self.q_B_0 = kwargs['q_B_0']
+        self.v_c_u_0 = kwargs['v_c_u_0']
+        self.v_c_1_0 = kwargs['v_c_1_0']
+
+        # Parameters
+        self.c_1 = kwargs['c_1']
+        self.R_0 = kwargs['R_0']
+        self.R_1 = kwargs['R_1']
+        self.v_a = kwargs['v_a']
+        self.Q_0 = kwargs['Q_0']
+        self.beta = kwargs['beta']
+        self.v_N = kwargs['v_N']
+
         self.validate_dimensions()
 
 
@@ -86,9 +101,9 @@ class batteryAgent:
     
  
     # local methods
-    def L_l(self, q_1, q_B, q_1_dot, q_B_dot, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    #def L_l(self, q_1, q_B, q_1_dot, q_B_dot, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
     # TODO: Change notation to be consistent with Steve's document:  e.g. instead of q_B, use qb
-    #def L_l(self, q_s, q_s_dot, u_s, **kwargs):
+    def L_l(self, q_s, q_s_dot, u_s):
         '''
         Inputs:
             states:
@@ -110,9 +125,33 @@ class batteryAgent:
                 beta:
                 v_N:
         '''
+        # Immediately extract q_s, q_s_dot, and u_s out of it
+        q_1 = q_s[0]
+        q_B = q_s[1]
+
+        q_1_dot = q_s_dot[0]
+        q_B_dot = q_s_dot[1]
+
+        u_B = u_s
+
         # TODO: replace as a function of self.K and self.T
         delta = 1
         # q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N = kwargs['q_1_0'], kwargs['q_B_0'], kwargs['v_c_u_0'], kwargs['v_c_1_0'],kwargs['c_1'], kwargs['R_0'], kwargs['R_1'], kwargs['v_a'], kwargs['Q_0'], kwargs['beta'],kwargs['v_N']
+
+        # data
+        q_1_0 = self.q_1_0
+        q_B_0 = self.q_B_0
+        v_c_u_0 = self.v_c_u_0
+        v_c_1_0 = self.v_c_1_0
+
+        # Parameters
+        c_1 = self.c_1
+        R_0 = self.R_0
+        R_1 = self.R_1
+        v_a = self.v_a
+        Q_0 = self.Q_0
+        beta = self.beta
+        v_N = self.v_N
 
         V_c_1 = (c_1/2.0)*((((q_1 - q_1_0)/c_1) + v_c_1_0)**2 - v_c_1_0)
         V_c_u = 0.5*(u_B*(-(q_B - q_B_0))**2+2*(-(q_B - q_B_0)*v_c_u_0))
@@ -127,8 +166,19 @@ class batteryAgent:
     def L_l_q_dot(self, q_s, q_s_dot, u_s):
         '''
         '''
-        q_s = [q_1, q_B], p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N
-        
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
+        q_1 = q_s[0]
+        q_B = q_s[1]
+
+        q_1_dot = q_s_dot[0]
+        q_B_dot = q_s_dot[1]
+
+        u_B = u_s
+
+        p_1 = (q_B_dot+q_1_dot)*self.R_1*delta
+        p_B = q_B_dot*(self.R_0+self.R_1)*delta + q_1_dot*self.R_1*delta
+        return np.concatenate([p_1, p_B])
 
     def H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         H_l_nou = self.H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
