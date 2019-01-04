@@ -178,7 +178,7 @@ class batteryAgent:
 
         p_1 = (q_B_dot+q_1_dot)*self.R_1*delta
         p_B = q_B_dot*(self.R_0+self.R_1)*delta + q_1_dot*self.R_1*delta
-        return np.concatenate([p_1, p_B])
+        return np.concatenate([np.array([p_1]), np.array([p_B])])
 
     def H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         H_l_nou = self.H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
@@ -299,33 +299,38 @@ class batteryAgent:
         p_H_mf_dot = self.q_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         return np.concatenate([q_H_mf_dot, p_H_mf_dot])
 
-    def qp_rhs(self, t, **kwargs): 
-        '''if all inputs needed explicitly use def qp_rhs(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def qp_rhs(self, t, qp_vec, **kwargs): 
+        '''
+        If all inputs needed explicitly use def qp_rhs(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
 
         This is how we call qp_rhs:
             qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
             qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
-
         '''
-        q_1 = kwargs['q_1']
-        q_B = kwargs['q_B']        
-        p_1 = kwargs['p_1']       
-        p_B = kwargs['p_B']       
-        u_B =kwargs['u_B']        
-        q_1_0_0 = kwargs['q_1_0']       
+        state_dim = self.state_dim
+
+        q_s = qp_vec[:state_dim]
+        q_1, q_B = q_s[0], q_s[1]
+
+        p_l = qp_vec[state_dim:2*state_dim]
+        p_mf = qp_vec[2*state_dim:]
+
+        p_1, p_B = p_l[0], p_l[1]
+
+        q_1_0 = kwargs['q_1_0']
         q_B_0 = kwargs['q_B_0']       
-        v_c_u_0 = kwargs['v_c_u_0']       
+        v_c_u_0 = kwargs['v_c_u_0']
         v_c_1_0 = kwargs['v_c_1_0']       
-        c_1 = kwargs['c_1']       
-        R_0 = kwargs['R_0']       
-        R_1 = kwargs['R_1']       
+        c_1 = kwargs['c_1']
+        R_0 = kwargs['R_0']
+        R_1 = kwargs['R_1']
         v_a = kwargs['v_a']       
         Q_0 = kwargs['Q_0']       
         beta = kwargs['beta']       
         v_N = kwargs['v_N']       
  
         state_dim = self.state_dim
- 
+        # normally you would use mean field inputs here, but we are using local ones until the mean field is ready 
         qp_rhs_H_mf = self.qp_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
 
         q_rhs_H_mf = qp_rhs_H_mf[:state_dim]
