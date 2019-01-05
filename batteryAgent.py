@@ -358,7 +358,6 @@ class batteryAgent:
         
         return np.concatenate([q_s_dot, p_l_dot, p_mf_dot])
  
-
     def u_rhs(self, t, u_vec, **kwargs):
         u_s = kwargs['u_0']
         state_dim = kwargs['state_dim']
