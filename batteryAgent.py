@@ -180,6 +180,34 @@ class batteryAgent:
         p_B = q_B_dot*(self.R_0+self.R_1)*delta + q_1_dot*self.R_1*delta
         return np.concatenate([np.array([p_1]), np.array([p_B])])
 
+    def L_mf_q_dot(self, q_mf, q_mf_dot, u_mf):
+        # q_mf_dot, q_mf (inputs) here will be vectors with ALL of the states
+        # u_mf is a vector of ALL of the controls
+        # extract q_s from q_mf
+        
+        # note that these methods must return vectors that are of local dimension - state_dim - even though they take in vectors of dimension for all the states
+        # the user needs to be aware of the indices the correspond to each state
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
+
+        # TODO: replace with actual L_l_q_dot for each agent.  currently these are fake.        
+        def L_l_q_dot_building1(q_mf, q_mf_dot, u_mf):
+            return np.array(q_mf[0])
+        
+        def L_l_q_dot_building2(q_mf, q_mf_dot, u_mf):
+            return np.array(q_mf[1])
+        
+        L_mf_total_q_dot = np.zeros(self.state_dim)
+
+        # agent 1
+        L_mf_total_q_dot += L_l_q_dot_building1(q_mf, q_mf_dot, u_mf)
+
+        # agent 2
+        L_mf_total_q_dot += L_l_q_dot_building2(q_mf, q_mf_dot, u_mf)
+        assert np.shape(L_mf_total_q_dot)[0] == self.state_dim, 'dimensions of L_mf_total_q_dot must match those of the local state, currently the dimensions are ' +str(np.shape(L_mf_total_q_dot)[0])
+        return L_mf_total_q_dot
+
+
     def H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         H_l_nou = self.H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         H_l = H_l_nou + np.dot(H_l_nou, u_B)
