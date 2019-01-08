@@ -315,7 +315,7 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, 
 def Betas(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l):
     Beta_mf=[]
     Beta_l=[]
-    H_mf_u = self.H_MF_u(q_mf, p_mf)
+    H_mf_u = self.H_mf_u(q_mf, p_mf, u_mf)
     H_l_u = self.H_l_u(q_s, p_l)
     lambda_l = 0
     for j in range(self.control_dim):
@@ -339,9 +339,9 @@ def alphas(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H
     alpha_mf=[]
     alpha_l=[]
     for j in range(self.control_dim):
-        H_mf_u = self.H_MF_u(q_mf, p_mf)
+        H_mf_u = self.H_mf_u(q_mf, p_mf, u_mf)
         H_l_u = self.H_l_u(q_s, p_l)
-        H_mf_nou = self.H_MF_nou(q_mf, p_mf, u_mf)
+        H_mf_nou = self.H_mf_nou(q_mf, p_mf, u_mf)
         H_l_nou = self.H_l_nou(q_mf, p_mf, u_mf)
         lambda_l=0
         alpha_mf_j = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_nou(p_mf, q_mf), q_s_dot) + np.dot(self.p_rhs_H_mf_nou(p_mf, q_mf), p_mf_dot)) +\

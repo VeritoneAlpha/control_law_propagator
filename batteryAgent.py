@@ -276,8 +276,10 @@ class batteryAgent:
 
     # Mean Field methods
     def H_mf_nou(self, q_mf, p_mf, u_mf):
-    #...other methods for mean field 
-        pass
+        return 1
+
+    def H_mf_u(self, q_mf, p_mf, u_mf):
+        return 1
 
     def q_rhs_H_mf_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         # should return 2D numpy array of dimension control_dim x state_dim

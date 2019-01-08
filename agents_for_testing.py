@@ -228,21 +228,21 @@ class Agent1:
         return u_s_dot
 
     ## Mean Field methods
-    def H_MF_nou(self, q_mf, p_mf, u_mf):
+    def H_mf_nou(self, q_mf, p_mf, u_mf):
         # Shen has u_mf in the flow chart
         return 1
 
-    def H_MF_u(self, q_mf, p_mf, u_mf):
+    def H_mf_u(self, q_mf, p_mf, u_mf):
         # q_s, u_mf are vectors for ALL of the states, and controls
         # p_mf is a vector for ONLY the local states/costates
         # length of u_s must match number of terms here
         # some of the elements in u_s are quenched
-        return self.H_MF_u_1(q_s, p_mf, u_s)*u_mf[0] + self.H_MF_u_2(q_s, p_mf, u_mf)*u_mf[1]
+        return self.H_mf_u_1(q_s, p_mf, u_s)*u_mf[0] + self.H_mf_u_2(q_s, p_mf, u_mf)*u_mf[1]
 
-    def H_MF_u_1(self, q_mf, p_mf):
+    def H_mf_u_1(self, q_mf, p_mf):
         return q_mf[0]*q_mf[1]
     
-    def H_MF_u_2(self, q_mf, p_mf):
+    def H_mf_u_2(self, q_mf, p_mf):
         return q_mf[1]
         
     def qp_rhs_H_mf(self, q_mf, p_mf, u_s):
@@ -528,18 +528,18 @@ class Agent2(object):
 
 
     ## Mean Field methods
-    def H_MF_nou(self, q_mf, p_mf, u_mf):
+    def H_mf_nou(self, q_mf, p_mf, u_mf):
         return 1
 
-    def H_MF_u(self, q_mf, p_mf):
+    def H_mf_u(self, q_mf, p_mf):
         # q_mf, u_mf are vectors for ALL of the states, and controls
         # retrns a numpy array with each element corresponding to H_mf for a particular control variable, j
-        return np.array([self.H_MF_u_1(q_mf, p_mf)]) #*u_mf[0]])  # + self.H_MF_u_2(q_mf, p_mf)*u_mf[1]
+        return np.array([self.H_mf_u_1(q_mf, p_mf)]) #*u_mf[0]])  # + self.H_mf_u_2(q_mf, p_mf)*u_mf[1]
 
-    def H_MF_u_1(self, q_mf, p_mf):
+    def H_mf_u_1(self, q_mf, p_mf):
         return q_mf[0]*q_mf[1]
     
-#     def H_MF_u_2(self, q_mf, p_mf):
+#     def H_mf_u_2(self, q_mf, p_mf):
 #         return q_mf[1]
         
     def qp_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
@@ -831,18 +831,18 @@ class Agent3:
 
 
     ## Mean Field methods
-    def H_MF_nou(self, q_mf, p_mf, u_mf):
+    def H_mf_nou(self, q_mf, p_mf, u_mf):
         return 1
 
-    def H_MF_u(self, q_mf, p_mf):
+    def H_mf_u(self, q_mf, p_mf):
         # q_mf, u_mf are vectors for ALL of the states, and controls
         # retrns a numpy array with each element corresponding to H_mf for a particular control variable, j
-        return np.array([self.H_MF_u_1(q_mf, p_mf), self.H_MF_u_2(q_mf, p_mf)]) 
+        return np.array([self.H_mf_u_1(q_mf, p_mf), self.H_mf_u_2(q_mf, p_mf)]) 
 
-    def H_MF_u_1(self, q_mf, p_mf):
+    def H_mf_u_1(self, q_mf, p_mf):
         return q_mf[0]*q_mf[1]
     
-    def H_MF_u_2(self, q_mf, p_mf):
+    def H_mf_u_2(self, q_mf, p_mf):
         return q_mf[1]
         
     def qp_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
@@ -1116,18 +1116,17 @@ class Agent4(Agent2):
 #
 #
 #    ## Mean Field methods
-#    def H_MF_nou(self, q_mf, p_mf, u_mf):
+#    def H_mf_nou(self, q_mf, p_mf, u_mf):
 #        return 1
 
-    def H_MF_u(self, q_mf, p_mf):
-        # q_mf, u_mf are vectors for ALL of the states, and controls
-        # retrns a numpy array with each element corresponding to H_mf for a particular control variable, j
-        return np.array([self.H_MF_u_1(q_mf, p_mf), self.H_MF_u_2(q_mf, p_mf)]) 
+    def H_mf_u(self, q_mf, p_mf):
+        # q_mf, p_mf, and u_mf are vectors for ALL of the states, and controls
+        return np.array([self.H_mf_u_1(q_mf, p_mf), self.H_mf_u_2(q_mf, p_mf)]) 
 
-    def H_MF_u_1(self, q_mf, p_mf):
+    def H_mf_u_1(self, q_mf, p_mf):
         return q_mf[0]*q_mf[1]
     
-    def H_MF_u_2(self, q_mf, p_mf):
+    def H_mf_u_2(self, q_mf, p_mf):
         return q_mf[1]
         
 #    def qp_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
