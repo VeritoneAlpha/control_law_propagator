@@ -161,12 +161,12 @@ class Agent1:
     def qp_rhs(self, t, qp_vec, **kwargs):
         # u_s is constant (because of causality, remember?)
         u_s = kwargs['u_0']
-        state_dim = kwargs['state_dim']
         q_mf = kwargs['q_mf']
         u_mf = kwargs['u_mf']
         
         # TODO:  get a kwargs working for lambda_l
         lambda_l = 0 # kwargs['lambda_l']
+        state_dim = self.state_dim
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
@@ -192,9 +192,8 @@ class Agent1:
         return np.concatenate([q_rhs_H_l, p_rhs_H_l])
 
 
-    def u_rhs(self, t, u_vec, **kwargs):
+    def u_rhs(self, t, u_vec, **kwargs): 
         u_s = kwargs['u_0']
-        state_dim = kwargs['state_dim']
         q_mf_dot = kwargs['q_mf_dot']
         q_s_dot = kwargs['q_s_dot']
         p_l_dot = kwargs['p_l_dot']
@@ -207,6 +206,7 @@ class Agent1:
         Beta_l = kwargs['Beta_l']
         alpha_mf = kwargs['alpha_mf']
         alpha_l = kwargs['alpha_l']
+        state_dim = self.state_dim
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
@@ -466,12 +466,12 @@ class Agent2(object):
     def qp_rhs(self, t, qp_vec, **kwargs):
         # u_s is constant (because of causality, remember?)
         u_s = kwargs['u_0']
-        state_dim = kwargs['state_dim']
         q_mf = kwargs['q_mf']
         u_mf = kwargs['u_mf']
         
         # TODO:  get a kwargs working for lambda_l
         lambda_l = 0 # kwargs['lambda_l']
+        state_dim = self.state_dim
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
@@ -493,7 +493,6 @@ class Agent2(object):
 
     def u_rhs(self, t, u_vec, **kwargs):
         u_s = kwargs['u_0']
-        state_dim = kwargs['state_dim']
         q_mf_dot = kwargs['q_mf_dot']
         q_s_dot = kwargs['q_s_dot']
         p_l_dot = kwargs['p_l_dot']
@@ -506,6 +505,7 @@ class Agent2(object):
         Beta_l = kwargs['Beta_l']
         alpha_mf = kwargs['alpha_mf']
         alpha_l = kwargs['alpha_l']
+        state_dim = self.state_dim
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
@@ -769,7 +769,6 @@ class Agent3:
     def qp_rhs(self, t, qp_vec, **kwargs):
         # u_s is constant (because of causality, remember?)
         u_s = kwargs['u_0']
-        state_dim = kwargs['state_dim']
         q_mf = kwargs['q_mf']
         u_mf = kwargs['u_mf']
         
@@ -796,7 +795,6 @@ class Agent3:
 
     def u_rhs(self, t, u_vec, **kwargs):
         u_s = kwargs['u_0']
-        state_dim = kwargs['state_dim']
         q_mf_dot = kwargs['q_mf_dot']
         q_s_dot = kwargs['q_s_dot']
         p_l_dot = kwargs['p_l_dot']
@@ -809,6 +807,7 @@ class Agent3:
         Beta_l = kwargs['Beta_l']
         alpha_mf = kwargs['alpha_mf']
         alpha_l = kwargs['alpha_l']
+        state_dim = self.state_dim
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
@@ -1054,7 +1053,6 @@ class Agent4(Agent2):
 #    def qp_rhs(self, t, qp_vec, **kwargs):
 #        # u_s is constant (because of causality, remember?)
 #        u_s = kwargs['u_0']
-#        state_dim = kwargs['state_dim']
 #        q_mf = kwargs['q_mf']
 #        u_mf = kwargs['u_mf']
 #        
@@ -1081,7 +1079,6 @@ class Agent4(Agent2):
 #
 #    def u_rhs(self, t, u_vec, **kwargs):
 #        u_s = kwargs['u_0']
-#        state_dim = kwargs['state_dim']
 #        q_mf_dot = kwargs['q_mf_dot']
 #        q_s_dot = kwargs['q_s_dot']
 #        p_l_dot = kwargs['p_l_dot']
@@ -1094,6 +1091,7 @@ class Agent4(Agent2):
 #        Beta_l = kwargs['Beta_l']
 #        alpha_mf = kwargs['alpha_mf']
 #        alpha_l = kwargs['alpha_l']
+#        state_dim = self.state_dim
 #        q_s = qp_vec[:state_dim]
 #        p_l = qp_vec[state_dim:2*state_dim]
 #        p_mf = qp_vec[2*state_dim:]

@@ -251,7 +251,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
         # update q_mf with the most recent local values in q_s
         q_s = qp_vec[:state_dim]
         q_mf = update_q_mf(q_mf, q_s, sliding_window_instance)
-        qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
+        qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter,   u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
         qp_vec_orig=qp_vec
         
         # rk23 returns 2 arrays but we remove the first array by doing qp_vec[1] because rk_23 returns the initial value you passed in
@@ -259,7 +259,7 @@ def propagate_q_p(qpu_vec, t_start, t_end, sliding_window_instance, q_mf, u_mf):
             qp_vec = qp_vec[-1]
         qp_vecs.append(qp_vec)
         # get time derivatives
-        qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
+        qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
         qp_dot_vecs.append(qp_dot_vec)
 
     return qp_vecs, qp_dot_vecs
@@ -303,7 +303,7 @@ def propagate_u(u_0, qp_vecs, t_start, t_end, sliding_window_instance, q_s_dot, 
         alpha_mf, alpha_l = alphas(sliding_window_instance, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l, H_l_D, p_l_dot)
 
 
-        u_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.u_rhs, n_start, n_end, u_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, qp_vec = qp_vec, u_0=u_0, q_s_dot=q_s_dot, p_l_dot=p_l_dot, p_mf_dot=p_mf_dot, q_mf_dot=q_mf_dot, q_mf=q_mf, u_mf=u_mf, H_l_D=H_l_D, Beta_mf=Beta_mf, Beta_l=Beta_l, alpha_mf=alpha_mf, alpha_l=alpha_l)
+        u_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.u_rhs, n_start, n_end, u_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter,  qp_vec = qp_vec, u_0=u_0, q_s_dot=q_s_dot, p_l_dot=p_l_dot, p_mf_dot=p_mf_dot, q_mf_dot=q_mf_dot, q_mf=q_mf, u_mf=u_mf, H_l_D=H_l_D, Beta_mf=Beta_mf, Beta_l=Beta_l, alpha_mf=alpha_mf, alpha_l=alpha_l)
         if len(u_vec)>1:
             u_vec_next=u_vec[-1]
         else:

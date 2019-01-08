@@ -223,7 +223,8 @@ class batteryAgent:
         term_5 = -(q_B-q_B_0)*v_a
         return term_1 + term_2 + term_3 + term_4 + term_5
 
-    def H_l_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def H_l_u(self, q_s, p_l, **kwargs):
+        q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N = 
         term_1 = 0.5*(-(q_B - q_B_0))**2 
         return term_1
 
@@ -349,7 +350,6 @@ class batteryAgent:
         p_1, p_B = p_l[0], p_l[1]
 
         u_s = kwargs['u_0']
-        state_dim = kwargs['state_dim']
         q_mf = kwargs['q_mf']
         u_mf = kwargs['u_mf']
  
@@ -390,7 +390,6 @@ class batteryAgent:
  
     def u_rhs(self, t, u_vec, **kwargs):
         u_s = kwargs['u_0']
-        state_dim = kwargs['state_dim']
         q_mf_dot = kwargs['q_mf_dot']
         q_s_dot = kwargs['q_s_dot']
         p_l_dot = kwargs['p_l_dot']
@@ -403,6 +402,7 @@ class batteryAgent:
         Beta_l = kwargs['Beta_l']
         alpha_mf = kwargs['alpha_mf']
         alpha_l = kwargs['alpha_l']
+        state_dim = self.state_dim
         q_s = qp_vec[:state_dim]
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
@@ -423,16 +423,16 @@ class batteryAgent:
         
         return u_s_dot
 
-
-    def H_D(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N, q_1_prev, q_B_prev, v_c_1_prev, v_c_u_prev):
-        # TODO: replace as a function of self.K and self.T
-        delta = 1
-        term_1 = 0.5*((p_B - p_1)/(R_0*delta)) + 0.5*((p_1)**2)/(R_1*delta) 
-        term_2 = (c_1/2)*((((q_1 - q_1_prev)/c_1) + v_c_1_prev)**2 - (v_c_1**2))
-        term_3 = 0.5*(u_B*(-(q_B - q_B_prev)**2)+2*(-(q_B-q_B_prev)*v_c_u_prev))
-        term_4 = (v_N/(beta**2))*(beta*q_B - beta*q_B_prev + (Q_0*beta - Q_0)*np.log((Q_0 - Q_0*beta + beta*q_B)/(Q_0 - Q_0*beta + beta*q_B_prev)))
-        term_5 = -(q_B - q_B_prev)*v_a
-        H_D = term_1 + term_2 + term_3 + term_4 + term_5
-        return H_D
+## --- remove because Shen said she will pass to you as input ---
+#    def H_D(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N, q_1_prev, q_B_prev, v_c_1_prev, v_c_u_prev):
+#        # TODO: replace as a function of self.K and self.T
+#        delta = 1
+#        term_1 = 0.5*((p_B - p_1)/(R_0*delta)) + 0.5*((p_1)**2)/(R_1*delta) 
+#        term_2 = (c_1/2)*((((q_1 - q_1_prev)/c_1) + v_c_1_prev)**2 - (v_c_1**2))
+#        term_3 = 0.5*(u_B*(-(q_B - q_B_prev)**2)+2*(-(q_B-q_B_prev)*v_c_u_prev))
+#        term_4 = (v_N/(beta**2))*(beta*q_B - beta*q_B_prev + (Q_0*beta - Q_0)*np.log((Q_0 - Q_0*beta + beta*q_B)/(Q_0 - Q_0*beta + beta*q_B_prev)))
+#        term_5 = -(q_B - q_B_prev)*v_a
+#        H_D = term_1 + term_2 + term_3 + term_4 + term_5
+#        return H_D
         
 
