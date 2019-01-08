@@ -531,7 +531,7 @@ class Agent2(object):
     def H_mf_nou(self, q_mf, p_mf, u_mf):
         return 1
 
-    def H_mf_u(self, q_mf, p_mf):
+    def H_mf_u(self, q_mf, p_mf, u_mf):
         # q_mf, u_mf are vectors for ALL of the states, and controls
         # retrns a numpy array with each element corresponding to H_mf for a particular control variable, j
         return np.array([self.H_mf_u_1(q_mf, p_mf)]) #*u_mf[0]])  # + self.H_mf_u_2(q_mf, p_mf)*u_mf[1]
@@ -834,7 +834,7 @@ class Agent3:
     def H_mf_nou(self, q_mf, p_mf, u_mf):
         return 1
 
-    def H_mf_u(self, q_mf, p_mf):
+    def H_mf_u(self, q_mf, p_mf, u_mf):
         # q_mf, u_mf are vectors for ALL of the states, and controls
         # retrns a numpy array with each element corresponding to H_mf for a particular control variable, j
         return np.array([self.H_mf_u_1(q_mf, p_mf), self.H_mf_u_2(q_mf, p_mf)]) 
@@ -1119,7 +1119,7 @@ class Agent4(Agent2):
 #    def H_mf_nou(self, q_mf, p_mf, u_mf):
 #        return 1
 
-    def H_mf_u(self, q_mf, p_mf):
+    def H_mf_u(self, q_mf, p_mf, u_mf):
         # q_mf, p_mf, and u_mf are vectors for ALL of the states, and controls
         return np.array([self.H_mf_u_1(q_mf, p_mf), self.H_mf_u_2(q_mf, p_mf)]) 
 
