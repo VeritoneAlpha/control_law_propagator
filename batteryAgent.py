@@ -314,11 +314,20 @@ class batteryAgent:
         q_H_mf_u_dot_1 = self.q_rhs_H_l_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         return q_H_mf_u_dot_1
 
-    def q_rhs_H_mf_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def q_rhs_H_mf_nou(self, q_mf, p_mf):
         # should return 1D numpy array of dimension 1 x state_dim
-        # TODO: Change to actual mean field.  For now just use local functions.
-        p_H_mf_u_dot_1 = self.p_rhs_H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
-        return p_H_mf_u_dot_1
+        q_1  = q_mf[0]
+        q_B  = q_mf[1]
+        qfb1  = q_mf[2]
+        qab1  = q_mf[3]
+        qwb1  = q_mf[4]
+        phil1b1  = q_mf[5]
+        qfb2  = q_mf[6]
+        qab2  = q_mf[7]
+        qwb2  = q_mf[8]
+        phil1b2  = q_mf[9]
+         
+        return np.zeros((1,self.state_dim))
 
     def p_rhs_H_mf_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         # should return 1D numpy array of dimension 1 x state_dim
@@ -371,7 +380,23 @@ class batteryAgent:
         u_s = kwargs['u_0']
         q_mf = kwargs['q_mf']
         u_mf = kwargs['u_mf']
- 
+
+        # see if this works because I think only qp_rhs is external facing
+        q_1  = q_mf[0]
+        q_B  = q_mf[1]
+        qfb1  = q_mf[2]
+        qab1  = q_mf[3]
+        qwb1  = q_mf[4]
+        phil1b1  = q_mf[5]
+        qfb2  = q_mf[6]
+        qab2  = q_mf[7]
+        qwb2  = q_mf[8]
+        phil1b2  = q_mf[9]
+        
+        u_B = u_mf[0]
+        u1b1 = u_mf[1]
+        u2 = u_mf[2]
+        u1b2 = u_mf[3] 
         # data
         q_1_0 = self.q_1_0
         q_B_0 = self.q_B_0
