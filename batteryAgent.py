@@ -213,9 +213,26 @@ class batteryAgent:
         H_l = H_l_nou + np.dot(H_l_nou, u_B)
         return H_l
 
-    def H_l_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def H_l_nou(self, q_s, p_l, lambda_l):
         # TODO: replace as a function of self.K and self.T
         delta = 1
+        q_1, q_B = q_s[0], q_s[1]
+        p_1, p_B = p_l[0], p_l[1]
+        # data
+        q_1_0 = self.q_1_0
+        q_B_0 = self.q_B_0
+        v_c_u_0 = self.v_c_u_0
+        v_c_1_0 = self.v_c_1_0
+
+        # Parameters
+        c_1 = self.c_1
+        R_0 = self.R_0
+        R_1 = self.R_1
+        v_a = self.v_a
+        Q_0 = self.Q_0
+        beta = self.beta
+        v_N = self.v_N
+
         term_1 = 0.5*(((p_B-p_1)**2)/(R_0 * delta)) + 0.5*((p_1**2)/(R_1*delta))
         term_2 = (c_1/2)*((((q_1-q_1_0)/c_1) + v_c_1_0)**2 - v_c_1_0**2) 
         term_3 = (-(q_B - q_B_0)*v_c_u_0) 
@@ -223,8 +240,10 @@ class batteryAgent:
         term_5 = -(q_B-q_B_0)*v_a
         return term_1 + term_2 + term_3 + term_4 + term_5
 
-    def H_l_u(self, q_s, p_l, **kwargs):
-        q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N = 
+    def H_l_u(self, q_s, p_l):
+        #q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N = 
+        q_1, q_B = q_s[0], q_s[1]
+        q_B_0 = self.q_B_0
         term_1 = 0.5*(-(q_B - q_B_0))**2 
         return term_1
 
