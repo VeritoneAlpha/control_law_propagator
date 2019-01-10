@@ -208,7 +208,7 @@ class batteryAgent:
         return L_mf_total_q_dot
 
 
-    def H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def H_l(self, q_s, p_l, lambda_l, u_s):
         H_l_nou = self.H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         H_l = H_l_nou + np.dot(H_l_nou, u_B)
         return H_l
@@ -247,7 +247,7 @@ class batteryAgent:
         term_1 = 0.5*(-(q_B - q_B_0))**2 
         return term_1
 
-    def q_rhs_H_l_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def q_rhs_H_l_nou(self, q_s, p_l, lambda_l):
         # TODO: replace as a function of self.K and self.T
         delta = 1
         q_1_rhs_H_l_nou = (q_1 - q_1_0)/c_1 + v_c_1_0
@@ -255,7 +255,7 @@ class batteryAgent:
         q_rhs_H_l_nou = np.concatenate([np.array([q_1_rhs_H_l_nou]), np.array([q_B_rhs_H_l_nou])])
         return q_rhs_H_l_nou
 
-    def p_rhs_H_l_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def p_rhs_H_l_nou(self, q_s, p_l, lambda_l):
         # TODO: replace as a function of self.K and self.T
         delta = 1
         p_1_rhs_H_l_nou = -p_B/(R_0*delta) + (p_1/delta)*((1/R_0)+(1/R_1))
@@ -263,7 +263,7 @@ class batteryAgent:
         p_rhs_H_l_nou = np.concatenate([np.array([p_1_rhs_H_l_nou]), np.array([p_B_rhs_H_l_nou])])
         return p_rhs_H_l_nou
 
-    def q_rhs_H_l_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def q_rhs_H_l_u(self, q_s, p_l):
         # TODO: replace as a function of self.K and self.T
         delta = 1
         q_1_rhs_H_l_u = 0
@@ -271,7 +271,7 @@ class batteryAgent:
         q_rhs_H_l_u = np.concatenate([np.array([q_1_rhs_H_l_u]), np.array([q_B_rhs_H_l_u])])
         return np.array([q_rhs_H_l_u])
 
-    def p_rhs_H_l_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def p_rhs_H_l_u(self, q_s, p_l):
         # TODO: replace as a function of self.K and self.T
         delta = 1
         p_1_rhs_H_l_u = 0
@@ -279,19 +279,19 @@ class batteryAgent:
         p_rhs_H_l_u = np.concatenate([np.array([p_1_rhs_H_l_u]), np.array([p_B_rhs_H_l_u])])
         return np.array([p_rhs_H_l_u])
 
-    def q_rhs_H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
-        q_rhs_H_l = self.q_rhs_H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + np.dot(self.q_rhs_H_l_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N).T, np.array([u_B]))
+    def q_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
+        q_rhs_H_l = self.q_rhs_H_l_nou(q_s, p_l, lambda_l) + np.dot(self.q_rhs_H_l_u(q_s, p_l).T, np.array([u_B]))
         # should return something of dimension state_dim 
         return q_rhs_H_l
 
-    def p_rhs_H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
-        p_rhs_H_l = self.p_rhs_H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + np.dot(self.p_rhs_H_l_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N).T, np.array([u_B]))
+    def p_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
+        p_rhs_H_l = self.p_rhs_H_l_nou(q_s, p_l, lambda_l) + np.dot(self.p_rhs_H_l_u(self, q_s, p_l).T, np.array([u_B]))
         # should return something of dimension state_dim 
         return p_rhs_H_l
 
-    def qp_rhs_H_l(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
-        q_rhs_H_l = self.q_rhs_H_l( q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
-        p_rhs_H_l = self.p_rhs_H_l(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+    def qp_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
+        q_rhs_H_l = self.q_rhs_H_l(q_s, p_l, u_s, lambda_l)
+        p_rhs_H_l = self.p_rhs_H_l(q_s, p_l, u_s, lambda_l)
         return np.concatenate([q_rhs_H_l, p_rhs_H_l])
 
     # Mean Field methods
@@ -304,14 +304,14 @@ class batteryAgent:
     def q_rhs_H_mf_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         # should return 2D numpy array of dimension control_dim x state_dim
         # TODO: Change to actual mean field.  For now just use local functions.
-        p_H_mf_u_dot_1 = self.p_rhs_H_l_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        p_H_mf_u_dot_1 = self.p_rhs_H_l_u(self, q_s, p_l)
         # Normally, we would wrap this in a numpy array like np.array([p_H_mf_u_dot_1]), but since we are stealing from local in this case it is not necessary
         return p_H_mf_u_dot_1
 
     def p_rhs_H_mf_u(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         # should return 2D numpy array of dimension control_dim x state_dim
         # TODO: Change to actual mean field.  For now just use local functions.
-        q_H_mf_u_dot_1 = self.q_rhs_H_l_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        q_H_mf_u_dot_1 = self.q_rhs_H_l_u(q_s, p_l)
         return q_H_mf_u_dot_1
 
     def q_rhs_H_mf_nou(self, q_mf, p_mf):
@@ -332,7 +332,7 @@ class batteryAgent:
     def p_rhs_H_mf_nou(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
         # should return 1D numpy array of dimension 1 x state_dim
         # TODO: Change to actual mean field.  For now just use local functions.
-        q_H_mf_u_dot_1 = self.q_rhs_H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        q_H_mf_u_dot_1 = self.q_rhs_H_l_nou(q_s, p_l, lambda_l)
         return q_H_mf_u_dot_1
 
     def p_rhs_H_mf(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
