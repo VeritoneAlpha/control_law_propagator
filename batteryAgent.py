@@ -343,18 +343,19 @@ class batteryAgent:
         p_rhs_H_mf_u_summed = np.dot(self.p_rhs_H_mf_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N).T, np.array([u_B]))        
         return self.p_rhs_H_mf_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + p_rhs_H_mf_u_summed
 
-    def q_rhs_H_mf(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def q_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
         # q_rhs_H_mf is the derivative wrt each of the local variables, so it will return something of dimension state_dim
         # q_rhs_H_mf_u returns the partial derivatives wrt each control, concatenated together
-        q_rhs_H_mf_u = self.q_rhs_H_mf_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        q_rhs_H_mf_u = self.q_rhs_H_mf_u(q_mf, p_mf, u_mf)
         assert np.shape(q_rhs_H_mf_u)==(len(self.control_indices), self.state_dim) # first dimension should be number of controls, inner dimension should be state_dim
-        q_rhs_H_mf_u_summed = np.dot(self.q_rhs_H_mf_u(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N).T, np.array([u_B]))        
-        return self.q_rhs_H_mf_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N) + q_rhs_H_mf_u_summed
+        q_rhs_H_mf_u_summed = np.dot(self.q_rhs_H_mf_u(q_mf, p_mf, u_mf).T, np.array([u_B]))        
+        # ---- How do we get this in terms of q_mf, p_mf, and u_mf ?
+        return self.q_rhs_H_mf_nou(q_mf, p_mf) + q_rhs_H_mf_u_summed
 
-    def qp_rhs_H_mf(self, q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
+    def qp_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
         # remember that we want to propagate as much as possible together in the same rhs function for numerical purposes
         # remember that q_rhs here is w.r.t p_mf but p_rhs here is w.r.t q_s
-        q_H_mf_dot = self.p_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        q_H_mf_dot = self.p_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s)
         p_H_mf_dot = self.q_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         return np.concatenate([q_H_mf_dot, p_H_mf_dot])
 
@@ -417,7 +418,9 @@ class batteryAgent:
 
         state_dim = self.state_dim
         # normally you would use mean field inputs here, but we are using local ones until the mean field is ready 
-        qp_rhs_H_mf = self.qp_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        #qp_rhs_H_mf = self.qp_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        qp_rhs_H_mf = self.qp_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s)
+        
 
         q_rhs_H_mf = qp_rhs_H_mf[:state_dim]
         p_rhs_H_mf = qp_rhs_H_mf[state_dim:]
