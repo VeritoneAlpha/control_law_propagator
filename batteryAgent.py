@@ -418,14 +418,13 @@ class batteryAgent:
 
         state_dim = self.state_dim
         # normally you would use mean field inputs here, but we are using local ones until the mean field is ready 
-        #qp_rhs_H_mf = self.qp_rhs_H_mf(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
         qp_rhs_H_mf = self.qp_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s)
         
 
         q_rhs_H_mf = qp_rhs_H_mf[:state_dim]
         p_rhs_H_mf = qp_rhs_H_mf[state_dim:]
 
-        qp_rhs_H_l = self.qp_rhs_H_l(q_1, q_B, p_1, p_B, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
+        qp_rhs_H_l = self.qp_rhs_H_l(q_s, p_l, u_s, lambda_l)
         q_rhs_H_l = qp_rhs_H_l[:state_dim]
         p_rhs_H_l = qp_rhs_H_l[state_dim:]
 
