@@ -175,10 +175,9 @@ class batteryAgent:
         q_B_dot = q_s_dot[1]
 
         u_B = u_s
-
         p_1 = (q_B_dot+q_1_dot)*self.R_1*delta
         p_B = q_B_dot*(self.R_0+self.R_1)*delta + q_1_dot*self.R_1*delta
-        return np.concatenate([np.array([p_1]), np.array([p_B])])
+        return np.array([p_1, p_B])
 
     def L_mf_q_dot(self, q_mf, q_mf_dot, u_mf):
         # q_mf_dot, q_mf (inputs) here will be vectors with ALL of the states
@@ -211,7 +210,8 @@ class batteryAgent:
     def H_l(self, q_s, p_l, u_s, lambda_l):
         # call using q_s, p_l, lambda_l
         H_l_nou = self.H_l_nou(q_s, p_l, lambda_l) 
-        H_l = H_l_nou + np.dot(H_l_nou, u_s)
+        H_l_u = self.H_l_u(q_s, p_l)
+        H_l = H_l_nou + np.dot(H_l_u, u_s)
         return H_l
 
     def H_l_nou(self, q_s, p_l, lambda_l):
@@ -242,10 +242,11 @@ class batteryAgent:
         return term_1 + term_2 + term_3 + term_4 + term_5
 
     def H_l_u(self, q_s, p_l):
+        # this returns a 1D numpy array, of dimension control_dim  
         q_1, q_B = q_s[0], q_s[1]
         q_B_0 = self.q_B_0
         term_1 = 0.5*(-(q_B - q_B_0))**2 
-        return term_1
+        return np.array([term_1])
 
     def q_rhs_H_l_nou(self, q_s, p_l, lambda_l):
         # TODO: replace as a function of self.K and self.T
