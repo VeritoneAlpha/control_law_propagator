@@ -208,9 +208,10 @@ class batteryAgent:
         return L_mf_total_q_dot
 
 
-    def H_l(self, q_s, p_l, lambda_l, u_s):
-        H_l_nou = self.H_l_nou(q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N)
-        H_l = H_l_nou + np.dot(H_l_nou, u_B)
+    def H_l(self, q_s, p_l, u_s, lambda_l):
+        # call using q_s, p_l, lambda_l
+        H_l_nou = self.H_l_nou(q_s, p_l, lambda_l) 
+        H_l = H_l_nou + np.dot(H_l_nou, u_s)
         return H_l
 
     def H_l_nou(self, q_s, p_l, lambda_l):
@@ -241,7 +242,6 @@ class batteryAgent:
         return term_1 + term_2 + term_3 + term_4 + term_5
 
     def H_l_u(self, q_s, p_l):
-        #q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N = 
         q_1, q_B = q_s[0], q_s[1]
         q_B_0 = self.q_B_0
         term_1 = 0.5*(-(q_B - q_B_0))**2 
@@ -344,8 +344,7 @@ class batteryAgent:
         return self.p_rhs_H_mf_nou(self, q_mf, p_mf) + p_rhs_H_mf_u_summed
 
     def q_rhs_H_mf(self, q_mf, p_mf, u_mf, u_s):
-        # q_rhs_H_mf is the derivative wrt each of the local variables, so it will return something of dimension state_dim
-        # q_rhs_H_mf_u returns the partial derivatives wrt each control, concatenated together
+        # q_rhs_H_mf is the derivative wrt each of the local variables, so it will return something of dimension state_dim # q_rhs_H_mf_u returns the partial derivatives wrt each control, concatenated together
         q_rhs_H_mf_u = self.q_rhs_H_mf_u(q_mf, p_mf, u_mf)
         assert np.shape(q_rhs_H_mf_u)==(len(self.control_indices), self.state_dim) # first dimension should be number of controls, inner dimension should be state_dim
         q_rhs_H_mf_u_summed = np.dot(self.q_rhs_H_mf_u(q_mf, p_mf, u_mf).T, np.array([u_B]))        
@@ -361,11 +360,6 @@ class batteryAgent:
 
     def qp_rhs(self, t, qp_vec, **kwargs):
         '''
-        If all inputs needed explicitly use def qp_rhs(self, q_1, q_B, p_1, p_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
-
-        This is how we call qp_rhs:
-            qp_vec, t, failFlag, iter_i = ode.ode_rk23(sliding_window_instance.qp_rhs, n_start, n_end, qp_vec, sliding_window_instance.integrateTol, sliding_window_instance.integrateMaxIter, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
-            qp_dot_vec = sliding_window_instance.qp_rhs(0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
         '''
         # This is what the input is going to look like:  0.0, qp_vec, state_dim=sliding_window_instance.state_dim, Gamma = sliding_window_instance.Gamma, u_0 = u_0, q_mf=q_mf, u_mf=u_mf)
         state_dim = self.state_dim
