@@ -322,13 +322,11 @@ def Betas(self, q_mf, p_mf, u_mf, u_s, q_s_dot, q_mf_dot, p_mf_dot, q_s, p_l):
         Beta_mf_j=np.array([])
         Beta_l_j=np.array([])
         for k in range(len(self.control_indices)):
-            import pdb; pdb.set_trace()
             # recall self.q_rhs_H_mf_u() returns a 2D np.array of size control_dim x state_dim, so self.q_rhs_H_mf_u()[k] is actually a 1D np.array
             Beta_mf_k = H_mf_u[j]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[k], p_mf_dot)) + \
                         H_mf_u[k]*(np.dot(self.q_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], q_s_dot) + np.dot(self.p_rhs_H_mf_u(p_mf, q_mf, u_mf)[j], p_mf_dot))
             Beta_l_k = H_l_u[j]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[k], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[k], p_mf_dot)) + \
                        H_l_u[k]*(np.dot(self.q_rhs_H_l_u(q_s, p_l)[j], q_s_dot) + np.dot(self.p_rhs_H_l_u(q_s, p_l)[j], p_mf_dot))
-            import pdb; pdb.set_trace() 
             Beta_mf_j=np.concatenate([Beta_mf_j, np.array([Beta_mf_k])])
             Beta_l_j=np.concatenate([Beta_l_j, np.array([Beta_l_k])])
         Beta_mf.append(Beta_mf_j) 
