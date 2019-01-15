@@ -61,6 +61,7 @@ class Agent1:
         self.gamma = gamma  # function is inputted by the user to compute this.
         self.sync = None # gets filled in when Synchronizer class is initialized
         self.name = name
+        self.lambda_l = 1
 
         # Inputs for numerical integration
         self.integrateTol = integrateTol
@@ -182,7 +183,7 @@ class Agent1:
         q_s_dot = self.gamma*p_rhs_H_mf + (1-self.gamma)*p_rhs_H_l
         p_mf_dot = q_rhs_H_mf
         p_l_dot = -1*q_rhs_H_l
-        
+
         return np.concatenate([q_s_dot, p_l_dot, p_mf_dot])
     
     def qp_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
@@ -357,6 +358,7 @@ class Agent2(object):
         self.gamma = gamma  # function is inputted by the user to compute this.
         self.sync = None # gets filled in when Synchronizer class is initialized
         self.name = name
+        self.lambda_l = 1
 
         # Inputs for numerical integration
         self.integrateTol = integrateTol
@@ -660,6 +662,7 @@ class Agent3:
         self.gamma = gamma  # function is inputted by the user to compute this.
         self.sync = None # gets filled in when Synchronizer class is initialized
         self.name = name
+        self.lambda_l = 1
 
         # Inputs for numerical integration
         self.integrateTol = integrateTol
