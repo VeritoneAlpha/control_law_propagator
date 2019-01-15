@@ -454,7 +454,6 @@ class batteryAgent:
         # normally you would use mean field inputs here, but we are using local ones until the mean field is ready 
         qp_rhs_H_mf = self.qp_rhs_H_mf(q_mf, p_mf, u_mf, u_s)
         
-
         q_rhs_H_mf = qp_rhs_H_mf[:state_dim]
         p_rhs_H_mf = qp_rhs_H_mf[state_dim:]
 
@@ -465,7 +464,7 @@ class batteryAgent:
         q_s_dot = self.gamma*p_rhs_H_mf + (1-self.gamma)*p_rhs_H_l
         p_mf_dot = q_rhs_H_mf
         p_l_dot = -1*q_rhs_H_l
-        
+
         return np.concatenate([q_s_dot, p_l_dot, p_mf_dot])
  
     def u_rhs(self, t, u_vec, **kwargs):
