@@ -339,9 +339,11 @@ class batteryAgent:
 
     # Mean Field methods
     def H_mf_nou(self, q_mf, p_mf, u_mf):
-        return np.array([1])
+        # should return a scalar
+        return 1
 
     def H_mf_u(self, q_mf, p_mf, u_mf):
+        # should return a 1D numpy array of dimension control_dim
         return np.array([1])
 
     def q_rhs_H_mf_u(self, q_mf, p_mf, u_mf):
@@ -492,7 +494,6 @@ class batteryAgent:
                 2) Compute u_s_dot_j = -1*self.Gamma*(self.gamma*(alpha_mf_j + np.dot(Beta_mf_j, u_s)) + (1-self.gamma)*(alpha_l_j + np.dot(Beta_l_j,u_s)))
                 3) Concatenate all of the u_s_dot_j to construct u_s_dot in a 1D np.array
             '''
-            
             Beta_mf_j,Beta_l_j = Beta_mf[j], Beta_l[j] 
             alpha_mf_j, alpha_l_j = alpha_mf[j], alpha_l[j]
             # Beta_mf_j, Beta_l_j should be vectors
