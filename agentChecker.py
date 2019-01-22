@@ -21,10 +21,20 @@ class AgentChecker:
         self.agent = agent
         # create fake data for testing inputs
         self.q_s = np.zeros((agent.state_dim))
-        self.q_s = np.zeros((agent.state_dim))
+        self.p_l = np.zeros((agent.state_dim))
+        self.p_mf = np.zeros((agent.state_dim))
+        self.u_s = np.zeros((agent.control_dim))
+
+        # need to access the agent's blackboard in order to construct mean field vectors
+
+        
+        list_of_methods=['L_l', 'L_l_q_dot','L_mf_q_dot','H_l','H_l_nou','H_l_u','q_rhs_H_l_nou',
+                 'p_rhs_H_l_nou','q_rhs_H_l_u','p_rhs_H_l_u','q_rhs_H_l','p_rhs_H_l',
+                 'qp_rhs_H_l', 'H_mf_nou','H_mf_u','q_rhs_H_mf_u','p_rhs_H_mf_u','q_rhs_H_mf_nou',
+                 'p_rhs_H_mf_nou','p_rhs_H_mf','q_rhs_H_mf','qp_rhs_H_mf','qp_rhs','u_rhs']
 
         # create dictionary of correct inputs, mapping method name to inputs
-        inputs = {'L_l': (self.q_s, self.p_l},
+        inputs = {'L_l': (self.q_s, self.p_l),
                  }
 
         # create list of correct dimensions for outputs
@@ -38,11 +48,12 @@ class AgentChecker:
         Outputs: 
             method_report: string describing the issues, if any, with each method.  There are four possible outcomes (not mutually exclusive:  No error, missing, incorrect inputs, incorrect outputs.
         ''' 
-        #TODO: figure out a clever way to test inputs, rather than just artificially constructing the correct dimensions.  Remember you can use some of the universal attributes of the batteryAgent, such as q_s_0, p_l_0, etc.
+        #TODO: figure out a clever way to test inputs, rather than just artificially constructing the correct dimensions.  Remember you can use some of the universal ("universal" meaning all agents have them - they are not the same across all agents) attributes of the batteryAgent, such as q_s_0, p_l_0, etc.
         for i in dir(self):
             result = getattr(self, i)
             if i.startswith('check') and not i.startswith('check_All') and hasattr(result, '__call__'):
-                result()
+                
+               result()
 
     def check_validate_dimensions(self):
         pass
@@ -70,39 +81,39 @@ class AgentChecker:
 #            output_result = 'correct'
 #        else:
 #            output_result = 'incorrect output dimensions'
-        
-    def check_L_l_q_dot(self):
-        agent = self.agent
-        L_l_q_dot = agent.L_l_q_dot(self.q_s, self.q_s_dot, agent.u_s)
-
-    def check_L_mf_q_dot(self):
-        agent = self.agent
-        L_mf_q_dot = agent.L_mf_q_dot(agent.q_mf, agent.q_mf_dot, agent.u_mf)
-
-    def check_H_l(self):
-        agent = self.agent
-        H_l = agent.H_l(self.q_s, agent.p_l, agent.u_s, lambda_l)
-
-    def check_H_l_nou(self):
-        agent = self.agent
-        H_l_nou = agent.H_l_nou(self.q_s, agent.p_l, lambda_l)
-
-    def check_H_l_u(self):
-        agent = self.agent
-        H_l_u = agent.H_l_u(self.q_s, agent.p_l)
-
-    def check_q_rhs_H_l_nou(self):
-        agent = self.agent
-        q_rhs_H_l_nou = agent.q_rhs_H_l_nou(self.q_s, agent.p_l, lambda_l)
-  
-    def check_p_rhs_H_l_nou(self):
-        agent = self.agent
-        p_rhs_H_l_nou = agent.p_rhs_H_l_nou(self.q_s, agent.p_l, lambda_l)
-
-    def check_q_rhs_H_l_u(self):
-        agent = self.agent
-        q_rhs_H_l_u = agent.q_rhs_H_l_u(self.q_s, agent.p_l)
-
+#        
+#    def check_L_l_q_dot(self):
+#        agent = self.agent
+#        L_l_q_dot = agent.L_l_q_dot(self.q_s, self.q_s_dot, agent.u_s)
+#
+#    def check_L_mf_q_dot(self):
+#        agent = self.agent
+#        L_mf_q_dot = agent.L_mf_q_dot(agent.q_mf, agent.q_mf_dot, agent.u_mf)
+#
+#    def check_H_l(self):
+#        agent = self.agent
+#        H_l = agent.H_l(self.q_s, agent.p_l, agent.u_s, lambda_l)
+#
+#    def check_H_l_nou(self):
+#        agent = self.agent
+#        H_l_nou = agent.H_l_nou(self.q_s, agent.p_l, lambda_l)
+#
+#    def check_H_l_u(self):
+#        agent = self.agent
+#        H_l_u = agent.H_l_u(self.q_s, agent.p_l)
+#
+#    def check_q_rhs_H_l_nou(self):
+#        agent = self.agent
+#        q_rhs_H_l_nou = agent.q_rhs_H_l_nou(self.q_s, agent.p_l, lambda_l)
+#  
+#    def check_p_rhs_H_l_nou(self):
+#        agent = self.agent
+#        p_rhs_H_l_nou = agent.p_rhs_H_l_nou(self.q_s, agent.p_l, lambda_l)
+#
+#    def check_q_rhs_H_l_u(self):
+#        agent = self.agent
+#        q_rhs_H_l_u = agent.q_rhs_H_l_u(self.q_s, agent.p_l)
+#
 #    def check_p_rhs_H_l_u(self, q_s, p_l):
 #        pass
 #    def check_q_rhs_H_l(self, q_s, p_l, u_s, lambda_l):
