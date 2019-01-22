@@ -55,25 +55,25 @@ class AgentChecker:
                 
                result()
 
-    def check_validate_dimensions(self):
-        pass
-
-    def check_L_l(self):
-        agent = self.agent
-        # check existence
-        if 'L_l' in dir(agent):
-            L_l_callable = getattr(agent, 'L_l')
-            if hasattr(L_l_callable, '__call__'):
-                # call the method
-                # check the output, and report NA if the method doesn't exist
-                output = L_l_callable()
-                self.check_output()
-            else:
-                existence = False
-        else:
-            existence = False
-        return existence, output
-
+#    def check_validate_dimensions(self):
+#        pass
+#
+#    def check_L_l(self):
+#        agent = self.agent
+#        # check existence
+#        if 'L_l' in dir(agent):
+#            L_l_callable = getattr(agent, 'L_l')
+#            if hasattr(L_l_callable, '__call__'):
+#                # call the method
+#                # check the output, and report NA if the method doesn't exist
+#                output = L_l_callable()
+#                self.check_output()
+#            else:
+#                existence = False
+#        else:
+#            existence = False
+#        return existence, output
+#
 #        # check dimensions of output
 #         L_l = agent.L_l(self.q_s, self.q_s_dot, agent.u_s)
 #       
