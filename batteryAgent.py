@@ -209,13 +209,9 @@ class batteryAgent:
         q_B_dot = q_mf_dot[0]
         q_1_dot = q_mf_dot[1]
 
-<<<<<<< HEAD
         p_mf_B = self.R_0*delta*q_B_dot + self.R_1*delta*q_B_dot*q_1_dot - self.L_a*(self.q_u_dot_0 -q_B_dot -self.q_a_B2_dot_0) - self.R_a*(self.q_u_dot_0 - q_B_dot - self.q_a_B2_dot_0)*delta - self.K_em*self.q_w_B1_dot_0*delta
         p_mf_1 = self.R_1*delta*q_B_dot + q_1_dot
         L_mf_total_q_dot = np.array([p_mf_B, p_mf_1])
-=======
-        L_mf_total_q_dot = self.R_0*delta*q_B_dot + self.R_1*delta*q_B_dot*q_1_dot - self.L_a*(self.q_u_dot_0 -q_B_dot -self.q_a_B2_dot_0) - self.R_a*(self.q_u_dot_0 - q_B_dot - self.q_a_B2_dot_0)*delta - self.K_em*self.q_w_B1_dot_0*delta
->>>>>>> b966630cd0d485973bceada4e3838bafe553cbad
 
         # TODO: replace with actual L_l_q_dot for each agent.  currently these are fake.        
         assert np.shape(L_mf_total_q_dot)[0] == self.state_dim, 'dimensions of L_mf_total_q_dot must match those of the local state vector, currently the dimensions are ' +str(np.shape(L_mf_total_q_dot)[0])
@@ -425,6 +421,7 @@ class batteryAgent:
 
         p_l = qp_vec[state_dim:2*state_dim]
         p_mf = qp_vec[2*state_dim:]
+        p_1_mf, p_B_mf = p_mf[0], p_mf[1]
 
         p_1, p_B = p_l[0], p_l[1]
 
@@ -478,7 +475,9 @@ class batteryAgent:
         q_rhs_H_l = qp_rhs_H_l[:state_dim]
         p_rhs_H_l = qp_rhs_H_l[state_dim:]
 
-        q_s_dot = self.gamma*p_rhs_H_mf + (1-self.gamma)*p_rhs_H_l
+        # since Shen provided the dynamics directly for q_B and q_1, this is not necessary: self.gamma*p_rhs_H_mf + (1-self.gamma)*p_rhs_H_l
+        q_B_dot = (p_B_mf - p_1_mf
+        q_s_dot = np.array([p_1_mf          
         p_mf_dot = q_rhs_H_mf
         p_l_dot = -1*q_rhs_H_l
 
