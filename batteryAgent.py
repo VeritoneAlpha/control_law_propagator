@@ -209,9 +209,13 @@ class batteryAgent:
         q_B_dot = q_mf_dot[0]
         q_1_dot = q_mf_dot[1]
 
+<<<<<<< HEAD
         p_mf_B = self.R_0*delta*q_B_dot + self.R_1*delta*q_B_dot*q_1_dot - self.L_a*(self.q_u_dot_0 -q_B_dot -self.q_a_B2_dot_0) - self.R_a*(self.q_u_dot_0 - q_B_dot - self.q_a_B2_dot_0)*delta - self.K_em*self.q_w_B1_dot_0*delta
         p_mf_1 = self.R_1*delta*q_B_dot + q_1_dot
         L_mf_total_q_dot = np.array([p_mf_B, p_mf_1])
+=======
+        L_mf_total_q_dot = self.R_0*delta*q_B_dot + self.R_1*delta*q_B_dot*q_1_dot - self.L_a*(self.q_u_dot_0 -q_B_dot -self.q_a_B2_dot_0) - self.R_a*(self.q_u_dot_0 - q_B_dot - self.q_a_B2_dot_0)*delta - self.K_em*self.q_w_B1_dot_0*delta
+>>>>>>> b966630cd0d485973bceada4e3838bafe553cbad
 
         # TODO: replace with actual L_l_q_dot for each agent.  currently these are fake.        
         assert np.shape(L_mf_total_q_dot)[0] == self.state_dim, 'dimensions of L_mf_total_q_dot must match those of the local state vector, currently the dimensions are ' +str(np.shape(L_mf_total_q_dot)[0])
