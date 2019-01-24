@@ -80,8 +80,8 @@ class batteryAgent:
         self.q_B_0 = kwargs['q_B_0']
         self.v_c_u_0 = kwargs['v_c_u_0']
         self.v_c_1_0 = kwargs['v_c_1_0']
-        #self.q_u_dot_0 = kwargs['q_u_dot_0']
-        #self.q_a_B2_dot_0 = kwargs['q_a_B2_dot_0']
+        self.q_u_dot_0 = kwargs['q_u_dot_0']
+        self.q_a_B2_dot_0 = kwargs['q_a_B2_dot_0']
 
         # Parameters
         self.c_1 = kwargs['c_1']
@@ -92,10 +92,10 @@ class batteryAgent:
         self.beta = kwargs['beta']
         self.v_N = kwargs['v_N']
 
-        #self.L_a = kwargs['L_a']
-        #self.R_a = kwargs['R_a']
+        self.L_a = kwargs['L_a']
+        self.R_a = kwargs['R_a']
         
-        #self.K_EM
+        self.K_em = kwargs['K_em']
         self.validate_dimensions()
 
 
@@ -105,10 +105,7 @@ class batteryAgent:
         assert len(self.control_indices) == len(self.u_s_0), 'control dimensions are not consistent.  dimension of control_indices is '+str(len(self.control_indices)) +' and len(u_0) is '+str(len(self.u_s_0))
         assert len(self.qpu_vec) == 3*self.state_dim + len(self.control_indices), ' control and state dimensions are not consistent with qpu_vec : length of qpu_vec is '+str(len(self.qpu_vec))+ ' and 3*self.state_dim + len(self.control_indices) is ' + str(3*self.state_dim + len(self.control_indices))
     
- 
     # local methods
-    #def L_l(self, q_1, q_B, q_1_dot, q_B_dot, u_B, q_1_0, q_B_0, v_c_u_0, v_c_1_0, c_1, R_0, R_1, v_a, Q_0, beta, v_N):
-    # TODO: Change notation to be consistent with Steve's document:  e.g. instead of q_B, use qb
     def L_l(self, q_s, q_s_dot, u_s):
         '''
         Inputs:
@@ -210,9 +207,8 @@ class batteryAgent:
 
         q_B_dot = q_mf_dot[0]
         q_1_dot = q_mf_dot[1]
-        #TODO: figure out what L_a is.
 
-        #L_mf_total_q_dot = self.R_0*delta*q_B_dot + self.R_1*delta*q_B_dot*q_1_dot - self.L_a*(self.q_u_dot_0 -q_B_dot -self.q_a_B2_dot_0) - self.R_a*(self.q_u_dot_0 - q_B_dot - self.q_a_B2_dot_0)*delta - self.K_EM*
+        L_mf_total_q_dot = self.R_0*delta*q_B_dot + self.R_1*delta*q_B_dot*q_1_dot - self.L_a*(self.q_u_dot_0 -q_B_dot -self.q_a_B2_dot_0) - self.R_a*(self.q_u_dot_0 - q_B_dot - self.q_a_B2_dot_0)*delta - self.K_EM*
 
         # TODO: replace with actual L_l_q_dot for each agent.  currently these are fake.        
         assert np.shape(L_mf_total_q_dot)[0] == self.state_dim, 'dimensions of L_mf_total_q_dot must match those of the local state, currently the dimensions are ' +str(np.shape(L_mf_total_q_dot)[0])
