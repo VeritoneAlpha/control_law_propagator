@@ -80,6 +80,8 @@ class batteryAgent:
         self.q_B_0 = kwargs['q_B_0']
         self.v_c_u_0 = kwargs['v_c_u_0']
         self.v_c_1_0 = kwargs['v_c_1_0']
+        #self.q_u_dot_0 = kwargs['q_u_dot_0']
+        #self.q_a_B2_dot_0 = kwargs['q_a_B2_dot_0']
 
         # Parameters
         self.c_1 = kwargs['c_1']
@@ -90,6 +92,10 @@ class batteryAgent:
         self.beta = kwargs['beta']
         self.v_N = kwargs['v_N']
 
+        #self.L_a = kwargs['L_a']
+        #self.R_a = kwargs['R_a']
+        
+        #self.K_EM
         self.validate_dimensions()
 
 
@@ -132,7 +138,7 @@ class batteryAgent:
         q_1_dot = q_s_dot[0]
         q_B_dot = q_s_dot[1]
 
-        u_B = u_s
+        u_B = u_s[0]
 
         # TODO: replace as a function of self.K and self.T
         delta = 1
@@ -161,6 +167,7 @@ class batteryAgent:
         F_B_out = -(q_B - q_B_0)*v_a
 
         L_l = -V_c_1 - V_c_u + D_R_0 + D_R_1 + F_B - F_B_out
+
         return  L_l
 
     def L_l_q_dot(self, q_s, q_s_dot, u_s):
@@ -183,33 +190,38 @@ class batteryAgent:
         # q_mf_dot, q_mf (inputs) here will be vectors with ALL of the states
         # u_mf is a vector of ALL of the controls
         # extract q_s from q_mf
-        
+        '''
+        Keep in mind the ordering of the states in the mf vectors:
+        q_1  = q_mf[0]
+        q_B  = q_mf[1]
+        qfb1  = q_mf[2]
+        qab1  = q_mf[3]
+        qwb1  = q_mf[4]
+        phil1b1  = q_mf[5]
+        qfb2  = q_mf[6]
+        qab2  = q_mf[7]
+        qwb2  = q_mf[8]
+        phil1b2  = q_mf[9]
+        ''' 
         # note that these methods must return vectors that are of local dimension - state_dim - even though they take in vectors of dimension for all the states
         # the user needs to be aware of the indices the correspond to each state
         # TODO: replace as a function of self.K and self.T
         delta = 1
 
+        q_B_dot = q_mf_dot[0]
+        q_1_dot = q_mf_dot[1]
+        #TODO: figure out what L_a is.
+
+        #L_mf_total_q_dot = self.R_0*delta*q_B_dot + self.R_1*delta*q_B_dot*q_1_dot - self.L_a*(self.q_u_dot_0 -q_B_dot -self.q_a_B2_dot_0) - self.R_a*(self.q_u_dot_0 - q_B_dot - self.q_a_B2_dot_0)*delta - self.K_EM*
+
         # TODO: replace with actual L_l_q_dot for each agent.  currently these are fake.        
-        def L_l_q_dot_building1(q_mf, q_mf_dot, u_mf):
-            return np.array(q_mf[0])
-        
-        def L_l_q_dot_building2(q_mf, q_mf_dot, u_mf):
-            return np.array(q_mf[1])
-        
-        L_mf_total_q_dot = np.zeros(self.state_dim)
-
-        # agent 1
-        L_mf_total_q_dot += L_l_q_dot_building1(q_mf, q_mf_dot, u_mf)
-
-        # agent 2
-        L_mf_total_q_dot += L_l_q_dot_building2(q_mf, q_mf_dot, u_mf)
         assert np.shape(L_mf_total_q_dot)[0] == self.state_dim, 'dimensions of L_mf_total_q_dot must match those of the local state, currently the dimensions are ' +str(np.shape(L_mf_total_q_dot)[0])
         return L_mf_total_q_dot
 
 
     def H_l(self, q_s, p_l, u_s, lambda_l):
         # call using q_s, p_l, lambda_l
-        H_l_nou = self.H_l_nou(q_s, p_l, lambda_l) 
+        H_l_nou = self.H_l_nou(q_s, p_l, lambda_l)
         H_l_u = self.H_l_u(q_s, p_l)
         H_l = H_l_nou + np.dot(H_l_u, u_s)
         return H_l
@@ -478,6 +490,7 @@ class batteryAgent:
         q_mf = kwargs['q_mf']
         u_mf = kwargs['u_mf']
         qp_vec = kwargs['qp_vec']
+        H_mf_D = kwargs['H_mf_D']
         H_l_D = kwargs['H_l_D']
         Beta_mf = kwargs['Beta_mf']
         Beta_l = kwargs['Beta_l']
