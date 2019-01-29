@@ -388,6 +388,8 @@ class batteryAgent:
         '''
         This method computes the mean field lagrangian.  Note that since u_mf contains the local u, it is not necessary to be an input, we could use u_s, but to be consistent with the mean field methods, we will use u_mf.
         '''
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
         q_1 = q_mf[0]
         q_B = q_mf[1]
  
@@ -397,11 +399,27 @@ class batteryAgent:
         p_1_mf = p_mf[0]
         p_B_mf = p_mf[1]
  
-        # TODO: replace as a function of self.K and self.T
-        delta = 1
-        L_U_Qch = self.v_a*self.q_u_dot_0*delta 
-        L_B = -(self.c_1/2)*((((-q_1 -self.q_1_0)/self.c1)+self.v_c_1_0)**2-self.v_c_1_0**2)-(1/2)*((u_b*(q_B-self.q_B_0)**2)-2*self.v_c_u_0*(q_B-self.q_B_0))\
-         +(1/2)*self.R_0*delta*q_B_dot**2 + (1/2)*self.R_1*delta*(q_B_dot+q_1_dot)**2 - (self.v_N/self.beta**2)*(self.beta
+        # data
+        q_1_0 = self.q_1_0
+        q_B_0 = self.q_B_0
+        v_c_u_0 = self.v_c_u_0
+        v_c_1_0 = self.v_c_1_0
+
+        # Parameters
+        c_1 = self.c_1
+        R_0 = self.R_0
+        R_1 = self.R_1
+        v_a = self.v_a
+        Q_0 = self.Q_0
+        beta = self.beta
+        v_N = self.v_N
+
+        L_U_Qch = v_a*q_u_dot_0*delta 
+        import pdb; pdb.set_trace()
+        L_B = -(c_1/2)*((((-q_1 -q_1_0)/c1)+v_c_1_0)**2-v_c_1_0**2)-(1/2)*((u_b*(q_B-q_B_0)**2)-2*v_c_u_0*(q_B-q_B_0))\
+            +(1/2)*R_0*delta*q_B_dot**2 + (1/2)*R_1*delta*(q_B_dot+q_1_dot)**2 
+            - (v_N/beta**2)*(beta*q_B-beta*q_B_0+(Q_0*beta-Q_0)*np.log((Q_0-Q_0*beta+beta*q_B)/(Q_0-Q_0*beta+beta*q_B_0)))
+
         #Figure out what this is in Shen's code: Qch_B = 
         L_B1_Qch
         L_B2_Qch
