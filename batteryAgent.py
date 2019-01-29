@@ -354,10 +354,34 @@ class batteryAgent:
         q_1 = q_mf[0]
         q_B = q_mf[1]
 
-        p_B_mf = p_mf[0]
-        p_1_mf = p_mf[1]
-        
-        
+        p_1_mf = p_mf[0]
+        p_B_mf = p_mf[1]
+
+        def q_B_mf_dot(self, p_mf):
+            '''Helper function for computing the other mean field methods'''
+            # TODO: replace as a function of self.K and self.T
+            delta = 1
+            p_1_mf = p_mf[0]
+            p_B_mf = p_mf[1]
+
+            num = p_B_mf - p_1_mf + (self.L_a + self.R_a*delta)*(self.q_u_dot_0 - self.q_a_B2_dot_0) + self.K_em*self.q_w_B1_dot_0*delta
+            den = self.R_0*delta + self.L_a +self.R_a*delta
+
+            q_B_mf_dot = num/den
+
+            return q_B_mf_dot
+ 
+        def q_1_mf_dot(self, p_mf):
+            '''Helper function for computing the other mean field methods'''
+            # TODO: replace as a function of self.K and self.T
+            delta = 1
+            p_1_mf = p_mf[0]
+            p_B_mf = p_mf[1]
+
+            q_1_mf_dot = (p_1_mf/(self.R_1*delta)) - q_B_mf_dot
+
+            return q_1_mf_dot
+ 
         return 1
 
     def H_mf_u(self, q_mf, p_mf, u_mf):
