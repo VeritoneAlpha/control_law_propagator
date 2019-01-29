@@ -351,12 +351,12 @@ class batteryAgent:
     # Mean Field methods
     def H_mf_nou(self, q_mf, p_mf, u_mf):
         # should return a scalar
-        q_1 = q_mf[0]
-        q_B = q_mf[1]
+        q_1_mf = q_mf[0]
+        q_B_mf = q_mf[1]
 
         p_1_mf = p_mf[0]
         p_B_mf = p_mf[1]
-
+        import pdb; pdb.set_trace()
         def q_B_mf_dot(self, p_mf):
             '''Helper function for computing the other mean field methods'''
             # TODO: replace as a function of self.K and self.T
@@ -377,13 +377,37 @@ class batteryAgent:
             delta = 1
             p_1_mf = p_mf[0]
             p_B_mf = p_mf[1]
-
+            q_B_mf_dot = self.q_B_mf_dot(p_mf)
             q_1_mf_dot = (p_1_mf/(self.R_1*delta)) - q_B_mf_dot
 
             return q_1_mf_dot
  
-        return 1
+        return 
 
+    def L_mf(self, q_mf, q_mf_dot, u_mf):
+        '''
+        This method computes the mean field lagrangian.  Note that since u_mf contains the local u, it is not necessary to be an input, we could use u_s, but to be consistent with the mean field methods, we will use u_mf.
+        '''
+        q_1 = q_mf[0]
+        q_B = q_mf[1]
+ 
+        q_1_dot = q_mf_dot[0]
+        q_B_dot = q_mf_dot[1]
+ 
+        p_1_mf = p_mf[0]
+        p_B_mf = p_mf[1]
+ 
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
+        L_U_Qch = self.v_a*self.q_u_dot_0*delta 
+        L_B = -(self.c_1/2)*((((-q_1 -self.q_1_0)/self.c1)+self.v_c_1_0)**2-self.v_c_1_0**2)-(1/2)*((u_b*(q_B-self.q_B_0)**2)-2*self.v_c_u_0*(q_B-self.q_B_0))\
+         +(1/2)*self.R_0*delta*q_B_dot**2 + (1/2)*self.R_1*delta*(q_B_dot+q_1_dot)**2 - (self.v_N/self.beta**2)*(self.beta
+        #Figure out what this is in Shen's code: Qch_B = 
+        L_B1_Qch
+        L_B2_Qch
+        L_mf = L_U_Qch + Qch_B + L_B1_Qch + L_B2_Qch
+        
+         
     def H_mf_u(self, q_mf, p_mf, u_mf):
         # should return a 1D numpy array of dimension control_dim
         return np.array([1])
