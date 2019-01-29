@@ -477,6 +477,7 @@ class batteryAgent:
 
         # since Shen provided the dynamics directly for q_B and q_1, this is not necessary: self.gamma*p_rhs_H_mf + (1-self.gamma)*p_rhs_H_l
         q_B_dot = (p_B_mf - p_1_mf
+
         q_s_dot = np.array([p_1_mf          
         p_mf_dot = q_rhs_H_mf
         p_l_dot = -1*q_rhs_H_l
