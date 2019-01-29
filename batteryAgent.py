@@ -351,6 +351,13 @@ class batteryAgent:
     # Mean Field methods
     def H_mf_nou(self, q_mf, p_mf, u_mf):
         # should return a scalar
+        q_1 = q_mf[0]
+        q_B = q_mf[1]
+
+        p_B_mf = p_mf[0]
+        p_1_mf = p_mf[1]
+        
+        
         return 1
 
     def H_mf_u(self, q_mf, p_mf, u_mf):
