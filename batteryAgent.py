@@ -110,6 +110,7 @@ class batteryAgent:
 
         self.L_a_B1 = kwargs['L_a_B1']
         self.D_B1 = kwargs['D_B1']
+        self.R_E_1 = kwargs['R_E_1']
         self.gamma_B1 = kwargs['gamma_B1']
         self.validate_dimensions()
 
@@ -364,7 +365,6 @@ class batteryAgent:
 
     # Mean Field methods
     def H_mf_nou(self, q_mf, p_mf, u_mf):
-        import pdb; pdb.set_trace()
         # should return a scalar
         q_1_mf = q_mf[0]
         q_B_mf = q_mf[1]
@@ -372,12 +372,12 @@ class batteryAgent:
         p_1_mf = p_mf[0]
         p_B_mf = p_mf[1]
 
-        q_B_mf_dot =  q_B_mf_dot(p_mf)
-        q_1_mf_dot =  q_1_mf_dot(p_mf)
+        q_B_mf_dot =  self.q_B_mf_dot(p_mf)
+        q_1_mf_dot =  self.q_1_mf_dot(p_mf)
 
         q_mf_dot = np.array([q_1_mf_dot, q_B_mf_dot])
-
-        return np.dot(p_mf, q_mf_dot) - () 
+        print '\n\n incomplete'
+        return np.dot(p_mf, q_mf_dot) # more stuff goes here when L_mf_bat is ready  
 
     def q_B_mf_dot(self, p_mf):
         '''Helper function for computing the other mean field methods'''
@@ -404,7 +404,7 @@ class batteryAgent:
 
         return q_1_mf_dot
 
-    def L_mf(self, q_mf, q_mf_dot, u_mf):
+    def L_mf(self, q_mf, q_mf_dot, p_mf, u_mf):
         '''
         This method computes the mean field lagrangian.  Note that since u_mf contains the local u, it is not necessary to be an input, we could use u_s, but to be consistent with the mean field methods, we will use u_mf.
         '''
@@ -418,6 +418,11 @@ class batteryAgent:
  
         p_1_mf = p_mf[0]
         p_B_mf = p_mf[1]
+
+        u_B = u_mf[0]
+        #u1b1 = u_mf[1]
+        #u2 = u_mf[2]
+        #u1b2 = u_mf[3] 
  
         # data
         q_1_0 = self.q_1_0
@@ -429,6 +434,7 @@ class batteryAgent:
         q_w_B1_dot_0 = self.q_w_B1_dot_0
         q_f_B1_dot_0 = self.q_f_B1_dot_0
         i_1_B1_0 = self.i_1_B1_0
+        q_u_dot_0 = self.q_u_dot_0
 
         # Parameters
         c_1 = self.c_1
@@ -450,11 +456,13 @@ class batteryAgent:
 
         L_U_Qch = v_a*q_u_dot_0*delta 
         import pdb; pdb.set_trace()
-        L_B = -(c_1/2)*((((-q_1 -q_1_0)/c1)+v_c_1_0)**2-v_c_1_0**2)-(1/2)*((u_b*(q_B-q_B_0)**2)-2*v_c_u_0*(q_B-q_B_0))\
-            +(1/2)*R_0*delta*q_B_dot**2 + (1/2)*R_1*delta*(q_B_dot+q_1_dot)**2 \ - (v_N/beta**2)*(beta*q_B-beta*q_B_0+(Q_0*beta-Q_0)*np.log((Q_0-Q_0*beta+beta*q_B)/(Q_0-Q_0*beta+beta*q_B_0)))
+        L_B = -(c_1/2)*((((-q_1 -q_1_0)/c_1)+v_c_1_0)**2-v_c_1_0**2)-(1/2)*((u_B*(q_B-q_B_0)**2)-2*v_c_u_0*(q_B-q_B_0))\
+            +(1/2)*R_0*delta*q_B_dot**2\
+            +(1/2)*R_1*delta*(q_B_dot+q_1_dot)**2 \
+             -(v_N/beta**2)*(beta*q_B-beta*q_B_0+(Q_0*beta-Q_0)*np.log((Q_0-Q_0*beta+beta*q_B)/(Q_0-Q_0*beta+beta*q_B_0)))
 
         # Figure out what this is in Shen's code: Qch_B = 
-        L_B1_Qch = -(L_1_B1/2)*(((1/L_1_B_1)*phi_1_B1_dot_0*delta + i_1_B1_0)**2-i_1_B1_0**2)\
+        L_B1_Qch = -(L_1_B1/2)*(((1/L_1_B1)*phi_1_B1_dot_0*delta + i_1_B1_0)**2-i_1_B1_0**2)\
             -(1/2)*(K_R_B1*K_E_B1**2*q_w_B1_dot_0**2*delta)\
             +(1/(2*R_E_1))*((K_E_B1*q_w_B1_dot_0-phi_1_B1_dot_0)**2*delta)\
             +(1/2)*(R_f_B1*q_f_B1_dot_0**2*delta)\
@@ -464,8 +472,11 @@ class batteryAgent:
             +(1/2)*D_B1*gamma_B1**2*q_w_B1_dot_0**2*delta\
             +K_EM_B1*(q_u_dot_0-q_B_dot-q_a_B2_dot_0)*q_w_B1_dot_0*delta\
             +K_M_B1*q_f_B1_dot_0*q_w_B1_dot_0*delta
+        '''
+        B1_B2_conn = 
         L_B2_Qch
-        L_mf = L_U_Qch + L_B + L_B1_Qch + L_B2_Qch
+        '''
+        L_mf = L_U_Qch + L_B + L_B1_Qch # + L_B2_Qch
 
         return L_mf
         
