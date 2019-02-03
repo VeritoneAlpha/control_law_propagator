@@ -350,6 +350,7 @@ class batteryAgent:
 
     # Mean Field methods
     def H_mf_nou(self, q_mf, p_mf, u_mf):
+        import pdb; pdb.set_trace()
         # should return a scalar
         q_1_mf = q_mf[0]
         q_B_mf = q_mf[1]
@@ -357,32 +358,35 @@ class batteryAgent:
         p_1_mf = p_mf[0]
         p_B_mf = p_mf[1]
 
-        def q_B_mf_dot(self, p_mf):
-            '''Helper function for computing the other mean field methods'''
-            # TODO: replace as a function of self.K and self.T
-            delta = 1
-            p_1_mf = p_mf[0]
-            p_B_mf = p_mf[1]
+        q_B_mf_dot =  q_B_mf_dot(p_mf)
+        q_1_mf_dot =  q_1_mf_dot(p_mf)
 
-            num = p_B_mf - p_1_mf + (self.L_a + self.R_a*delta)*(self.q_u_dot_0 - self.q_a_B2_dot_0) + self.K_em*self.q_w_B1_dot_0*delta
-            den = self.R_0*delta + self.L_a +self.R_a*delta
-
-            q_B_mf_dot = num/den
-
-            return q_B_mf_dot
- 
-        def q_1_mf_dot(self, p_mf):
-            '''Helper function for computing the other mean field methods'''
-            # TODO: replace as a function of self.K and self.T
-            delta = 1
-            p_1_mf = p_mf[0]
-            p_B_mf = p_mf[1]
-            q_B_mf_dot = self.q_B_mf_dot(p_mf)
-            q_1_mf_dot = (p_1_mf/(self.R_1*delta)) - q_B_mf_dot
-
-            return q_1_mf_dot
- 
         return 
+
+    def q_B_mf_dot(self, p_mf):
+        '''Helper function for computing the other mean field methods'''
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
+        p_1_mf = p_mf[0]
+        p_B_mf = p_mf[1]
+
+        num = p_B_mf - p_1_mf + (self.L_a + self.R_a*delta)*(self.q_u_dot_0 - self.q_a_B2_dot_0) + self.K_em*self.q_w_B1_dot_0*delta
+        den = self.R_0*delta + self.L_a +self.R_a*delta
+
+        q_B_mf_dot = num/den
+
+        return q_B_mf_dot
+
+    def q_1_mf_dot(self, p_mf):
+        '''Helper function for computing the other mean field methods'''
+        # TODO: replace as a function of self.K and self.T
+        delta = 1
+        p_1_mf = p_mf[0]
+        p_B_mf = p_mf[1]
+        q_B_mf_dot = self.q_B_mf_dot(p_mf)
+        q_1_mf_dot = (p_1_mf/(self.R_1*delta)) - q_B_mf_dot
+
+        return q_1_mf_dot
 
     def L_mf(self, q_mf, q_mf_dot, u_mf):
         '''
@@ -452,7 +456,7 @@ class batteryAgent:
         qab2  = q_mf[7]
         qwb2  = q_mf[8]
         phil1b2  = q_mf[9]
-         
+          
         return np.zeros((self.state_dim))
 
     def p_rhs_H_mf_nou(self, q_mf, p_mf):
