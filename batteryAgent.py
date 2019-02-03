@@ -83,6 +83,9 @@ class batteryAgent:
         self.q_u_dot_0 = kwargs['q_u_dot_0']
         self.q_a_B2_dot_0 = kwargs['q_a_B2_dot_0']
         self.q_w_B1_dot_0 = kwargs['q_w_B1_dot_0']
+        self.Phi_1_B1_dot_0 = kwargs['Phi_1_B1_dot_0']
+        self.Phi_1_B2_dot_0 = kwargs['Phi_1_B2_dot_0']
+        self.i_1_B1_0 = kwargs['i_1_B1_0']
 
         # Parameters
         self.c_1 = kwargs['c_1']
@@ -96,7 +99,9 @@ class batteryAgent:
         self.L_a = kwargs['L_a']
         self.R_a = kwargs['R_a']
         
-        self.K_em = kwargs['K_em']
+        self.L_1_B1 = kwargs['L_1_B1']
+        self.L_1_B2 = kwargs['L_1_B2']
+        self.R_a = kwargs['R_a']
         self.validate_dimensions()
 
 
@@ -361,7 +366,9 @@ class batteryAgent:
         q_B_mf_dot =  q_B_mf_dot(p_mf)
         q_1_mf_dot =  q_1_mf_dot(p_mf)
 
-        return 
+        q_mf_dot = np.array([q_1_mf_dot, q_B_mf_dot])
+
+        return np.dot(p_mf, q_mf_dot) - () 
 
     def q_B_mf_dot(self, p_mf):
         '''Helper function for computing the other mean field methods'''
@@ -408,6 +415,9 @@ class batteryAgent:
         q_B_0 = self.q_B_0
         v_c_u_0 = self.v_c_u_0
         v_c_1_0 = self.v_c_1_0
+        Phi_1_B1_dot_0 = self.Phi_1_B1_dot_0
+        Phi_1_B2_dot_0 = self.Phi_1_B2_dot_0
+        i_1_B1_0 = self.i_1_B1_0
 
         # Parameters
         c_1 = self.c_1
@@ -417,17 +427,20 @@ class batteryAgent:
         Q_0 = self.Q_0
         beta = self.beta
         v_N = self.v_N
+        L_1_B1 = self.L_1_B1
+        L_1_B2 = self.L_1_B2
 
         L_U_Qch = v_a*q_u_dot_0*delta 
         import pdb; pdb.set_trace()
         L_B = -(c_1/2)*((((-q_1 -q_1_0)/c1)+v_c_1_0)**2-v_c_1_0**2)-(1/2)*((u_b*(q_B-q_B_0)**2)-2*v_c_u_0*(q_B-q_B_0))\
-            +(1/2)*R_0*delta*q_B_dot**2 + (1/2)*R_1*delta*(q_B_dot+q_1_dot)**2 \
-            - (v_N/beta**2)*(beta*q_B-beta*q_B_0+(Q_0*beta-Q_0)*np.log((Q_0-Q_0*beta+beta*q_B)/(Q_0-Q_0*beta+beta*q_B_0)))
+            +(1/2)*R_0*delta*q_B_dot**2 + (1/2)*R_1*delta*(q_B_dot+q_1_dot)**2 \ - (v_N/beta**2)*(beta*q_B-beta*q_B_0+(Q_0*beta-Q_0)*np.log((Q_0-Q_0*beta+beta*q_B)/(Q_0-Q_0*beta+beta*q_B_0)))
 
         #Figure out what this is in Shen's code: Qch_B = 
-        L_B1_Qch
+        L_B1_Qch = -(L_1_B1/2)*(((1/L_1_B_1)*Phi_1_B1_dot_0*delta + i_1_B1_0)**2-i_1_B1_0**2)
         L_B2_Qch
-        L_mf = L_U_Qch + Qch_B + L_B1_Qch + L_B2_Qch
+        L_mf = L_U_Qch + L_B + L_B1_Qch + L_B2_Qch
+
+        return L_mf
         
          
     def H_mf_u(self, q_mf, p_mf, u_mf):
