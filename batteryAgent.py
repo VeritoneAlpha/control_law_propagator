@@ -85,6 +85,7 @@ class batteryAgent:
         self.q_w_B1_dot_0 = kwargs['q_w_B1_dot_0']
         self.q_w_B2_dot_0 = kwargs['q_w_B2_dot_0']
         self.q_f_B1_dot_0 = kwargs['q_f_B1_dot_0']
+        self.q_f_B2_dot_0 = kwargs['q_f_B2_dot_0']
 
         self.phi_1_B1_dot_0 = kwargs['phi_1_B1_dot_0']
         self.phi_1_B2_dot_0 = kwargs['phi_1_B2_dot_0']
@@ -113,7 +114,10 @@ class batteryAgent:
 
         self.L_a_B1 = kwargs['L_a_B1']
         self.D_B1 = kwargs['D_B1']
-        self.R_E_1 = kwargs['R_E_1']
+        self.R_E_1_B1 = kwargs['R_E_1_B1']
+        self.R_E_1_B2 = kwargs['R_E_1_B2']
+        self.R_f_B1 = kwargs['R_f_B1']
+        self.R_f_B2 = kwargs['R_f_B2']
         self.gamma_B1 = kwargs['gamma_B1']
         self.validate_dimensions()
 
@@ -423,9 +427,9 @@ class batteryAgent:
         p_B_mf = p_mf[1]
 
         u_B = u_mf[0]
-        #u1b1 = u_mf[1]
+        u_1_B1 = u_mf[1]
         #u2 = u_mf[2]
-        #u1b2 = u_mf[3] 
+        u_1_B2 = u_mf[3]
  
         # data
         q_1_0 = self.q_1_0
@@ -437,6 +441,7 @@ class batteryAgent:
         q_w_B1_dot_0 = self.q_w_B1_dot_0
         q_w_B2_dot_0 = self.q_w_B2_dot_0
         q_f_B1_dot_0 = self.q_f_B1_dot_0
+        q_f_B2_dot_0 = self.q_f_B2_dot_0
         i_1_B1_0 = self.i_1_B1_0
         q_u_dot_0 = self.q_u_dot_0
 
@@ -452,10 +457,13 @@ class batteryAgent:
         L_1_B2 = self.L_1_B2
         K_R_B1 = self.K_R_B1
         K_R_B2 = self.K_R_B2
-        R_E_1 = self.R_E_1
+        R_E_1_B1 = self.R_E_1_B1
+        R_E_1_B2 = self.R_E_1_B2
         K_E_B1 = self.K_E_B1
         K_E_B2 = self.K_E_B2
         L_a_B1 = self.L_a_B1
+        R_f_B1 = self.R_f_B1
+        R_f_B2 = self.R_f_B2
         D_B1 = self.D_B1
         gamma_B1 = self.gamma_B1
         K_EM_B1 = self.K_EM_B1
@@ -479,8 +487,14 @@ class batteryAgent:
             +K_M_B1*q_f_B1_dot_0*q_w_B1_dot_0*delta
 
 
-        B1_B2_conn = -(1/2)*(U_2*(K_E_B2*q_w_B2_dot_0*delta-K_E_B1*q_w_B1_dot_0*delta)**2+2*i_L_2_0*(K_E_B2*q_w_B2_dot_0*delta-K_E_B1*q_w_B1_dot_0*delta))-(L_1_B2/2)*(((1/L_1_B_2)*phi_1_B2_dot_0*delta + i_L_B2_0)**2) - (1/2)*K_R_B2*K_E_B2**2*q_w_B2_0**2*delta+(1/(2*R_E_1_B2
-        L_B2_Qch = 
+        B1_B2_conn = -(1/2)*(U_2*(K_E_B2*q_w_B2_dot_0*delta-K_E_B1*q_w_B1_dot_0*delta)**2+2*i_L_2_0*(K_E_B2*q_w_B2_dot_0*delta-K_E_B1*q_w_B1_dot_0*delta))
+        L_B2_Qch = -(L_1_B2/2)*(((1/L_1_B_2)*phi_1_B2_dot_0*delta + i_L_B2_0)**2)\
+                   - (1/2)*K_R_B2*K_E_B2**2*q_w_B2_0**2*delta\
+                   +(1/(2*R_E_1_B2))*(K_E_B2*q_w_B2_0*phi_1_B2_dot_0)**2*delta\
+                   +(1/2)*R_f_B2*q_f_B2_dot_0**2*delta\
+                   +u_1_B2+q_f_B2_dot_0*delta + (1/2)*R_a_B2
+
+
         L_mf = L_U_Qch + L_B + L_B1_Qch # + L_B2_Qch
 
         return L_mf
