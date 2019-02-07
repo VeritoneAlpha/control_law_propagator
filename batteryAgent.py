@@ -83,6 +83,7 @@ class batteryAgent:
         self.q_u_dot_0 = kwargs['q_u_dot_0']
         self.q_a_B2_dot_0 = kwargs['q_a_B2_dot_0']
         self.q_w_B1_dot_0 = kwargs['q_w_B1_dot_0']
+        self.q_w_B2_dot_0 = kwargs['q_w_B2_dot_0']
         self.q_f_B1_dot_0 = kwargs['q_f_B1_dot_0']
 
         self.phi_1_B1_dot_0 = kwargs['phi_1_B1_dot_0']
@@ -104,9 +105,11 @@ class batteryAgent:
         self.L_1_B1 = kwargs['L_1_B1']
         self.L_1_B2 = kwargs['L_1_B2']
         self.K_R_B1 = kwargs['K_R_B1']
+        self.K_R_B2 = kwargs['K_R_B2']
         self.K_EM_B1 = kwargs['K_EM_B1']
         self.K_M_B1 = kwargs['K_M_B1']
         self.K_E_B1 = kwargs['K_E_B1']
+        self.K_E_B2 = kwargs['K_E_B2']
 
         self.L_a_B1 = kwargs['L_a_B1']
         self.D_B1 = kwargs['D_B1']
@@ -432,6 +435,7 @@ class batteryAgent:
         phi_1_B1_dot_0 = self.phi_1_B1_dot_0
         phi_1_B2_dot_0 = self.phi_1_B2_dot_0
         q_w_B1_dot_0 = self.q_w_B1_dot_0
+        q_w_B2_dot_0 = self.q_w_B2_dot_0
         q_f_B1_dot_0 = self.q_f_B1_dot_0
         i_1_B1_0 = self.i_1_B1_0
         q_u_dot_0 = self.q_u_dot_0
@@ -447,15 +451,16 @@ class batteryAgent:
         L_1_B1 = self.L_1_B1
         L_1_B2 = self.L_1_B2
         K_R_B1 = self.K_R_B1
+        K_R_B2 = self.K_R_B2
         R_E_1 = self.R_E_1
         K_E_B1 = self.K_E_B1
+        K_E_B2 = self.K_E_B2
         L_a_B1 = self.L_a_B1
         D_B1 = self.D_B1
         gamma_B1 = self.gamma_B1
         K_EM_B1 = self.K_EM_B1
 
         L_U_Qch = v_a*q_u_dot_0*delta 
-        import pdb; pdb.set_trace()
         L_B = -(c_1/2)*((((-q_1 -q_1_0)/c_1)+v_c_1_0)**2-v_c_1_0**2)-(1/2)*((u_B*(q_B-q_B_0)**2)-2*v_c_u_0*(q_B-q_B_0))\
             +(1/2)*R_0*delta*q_B_dot**2\
             +(1/2)*R_1*delta*(q_B_dot+q_1_dot)**2 \
@@ -472,10 +477,10 @@ class batteryAgent:
             +(1/2)*D_B1*gamma_B1**2*q_w_B1_dot_0**2*delta\
             +K_EM_B1*(q_u_dot_0-q_B_dot-q_a_B2_dot_0)*q_w_B1_dot_0*delta\
             +K_M_B1*q_f_B1_dot_0*q_w_B1_dot_0*delta
-        '''
-        B1_B2_conn = 
-        L_B2_Qch
-        '''
+
+
+        B1_B2_conn = -(1/2)*(U_2*(K_E_B2*q_w_B2_dot_0*delta-K_E_B1*q_w_B1_dot_0*delta)**2+2*i_L_2_0*(K_E_B2*q_w_B2_dot_0*delta-K_E_B1*q_w_B1_dot_0*delta))-(L_1_B2/2)*(((1/L_1_B_2)*phi_1_B2_dot_0*delta + i_L_B2_0)**2) - (1/2)*K_R_B2*K_E_B2**2*q_w_B2_0**2*delta+(1/(2*R_E_1_B2
+        L_B2_Qch = 
         L_mf = L_U_Qch + L_B + L_B1_Qch # + L_B2_Qch
 
         return L_mf
