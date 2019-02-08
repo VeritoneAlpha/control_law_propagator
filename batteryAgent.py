@@ -14,15 +14,42 @@ from blackboard import *
 class batteryAgent:
     
     def __init__(self, blackboard, state_indices, control_indices, q_s_0=None, p_l_0=None, p_mf_0=None, u_s_0=None, q_s_dot=None, gamma=1, Gamma=1, name='', integrateTol=10**-5, integrateMaxIter=400, t_0=0, T=2, K=4, t_terminal=4, n_s=10, **kwargs): 
-        ''' state_indices (list of integers): This list tells which states pertain to this agent. e.g. [1,2] would 
-        tell us that states 1 and 2 pertain to this agent.
-        
-        A word on notation:  The notation used for the methods of the agent is:  
+        ''' 
+        *** These inputs are for generalized Agent code.  All Agents must define this inputs ***
+        Inputs:
+            self: required as part of definition
+            blackboard (Blackboard): instance of class Blackboard, which will contain the values of the states for all of the agents.  To be used for constructing the mean field vectors. 
+            state_indices (list of integers): This list tells which states pertain to this agent. e.g. [1,2] would tell us that states 1 and 2 pertain to this agent.
+            control_indices (list of integers): This list tells which controls pertain to this agent. e.g. [1,2] would tell us that controls 1 and 2 pertain to this agent.
+            q_s_0 (1D numpy array of dimension 1xlen(state_indices)): Local state values at the start of the propagation.  These values are from the simulator.
+            p_l_0 (1D numpy array of dimension 1xlen(state_indices)): Local momentum values at the start of the propagation.  
+            u_s_0 (1D numpy array of dimension 1xlen(control_indices)): Local control values at the start of the propagation.  
+            q_s_dot (1D numpy array of dimension 1xlen(state_indices)): Derivative of local states at start of propagation.
+            gamma (float): factor used for computation of the mean field lagrangian, by playing pareto game.
+            Gamma (float): factor used in computation of the derivatives of u dot.
+            name (string): name for this agent. This is used for identifying the agent by some colloquial name, e.g. "battery".
+            integrateTol (exponential float): integration tolerance for use in RK23 integration.
+            integrateMaxIter (int): number of iterations in RK23 integration before exit.
+            t_0 (float): start time of propagation
+            T (float): Length of window of propagation
+            K (int): Number of buckets for half of the propagation.  2K = number of buckets for entire propagation.
+            t_terminal (int): end time of propagation
+            n_s (int): number of increments for each bucket
+        ''' 
+
+        '''
+            *** The data and parameters below are specific to this battery Agent ***
+            **kwargs:
+                <data and parameters>
+        '''
+
+        '''
+        A word on notation:  The notation used for the methods of the agent is:
             - If it is a partial derivative: <denominator>_rhs_H_<type of hamiltonian (l, mf, or s)>_<nou or u>.  e.g., 
             "qp_rhs_H_l_u" denotes the partial derivative with respect to q and p of the terms in the local Hamiltonian that contain control variables.
             And p_rhs_H_mf_u denotes the partial derivative with respect to p of the terms in the mean field Hamiltonian of the terms containing "u".
             - If it is a hamiltonian: H_<type of hamiltonian (l, mf, or s)>_<nou or u>.  e.g. "H_mf_nou" denotes the mean field hamiltonian with terms not containing u.
-        '''
+        ''' 
         self.state_indices = state_indices
         self.control_indices = control_indices
         self.state_dim = len(self.state_indices)
@@ -44,7 +71,7 @@ class batteryAgent:
             self.p_mf_0 = np.zeros((len(state_indices)))
         else:
             self.p_mf_0 = p_mf_0
-     
+
         if u_s_0==None:
             self.u_s_0 = np.zeros((len(self.control_indices)))
         else:
